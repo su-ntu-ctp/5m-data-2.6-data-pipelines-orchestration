@@ -1,0 +1,11 @@
+name: elt
+channels:
+  - defaults
+dependencies:
+  - pip=23.2.1
+  - python=3.10.13
+  - pip:
+      - meltano==3.0.0
+      - dagster==1.4.15
+      - dagster-webserver==1.4.15
+prefix: /Users/zanelim/miniconda3/envs/elt
