@@ -281,3 +281,48 @@ ops:
 ```
 
 Then click 'Launch run'.
+
+### Using dbt with Dagster
+
+We can also orchestrate dbt with Dagster.
+
+First, activate the conda environment.
+
+```bash
+conda activate dwh
+```
+
+Create a file named `profiles.yml` in the `resale_flat` dbt project directory with the following content:
+
+```yml
+resale_flat:
+  outputs:
+    dev:
+      dataset: resale_flat
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      keyfile: #full-path-to-the-service-account-key-file
+      location: US
+      method: service-account
+      priority: interactive
+      project: meltano-learn
+      threads: 1
+      type: bigquery
+  target: dev
+```
+
+Then create a new Dagster project within the same directory.
+
+```bash
+dagster-dbt project scaffold --project-name resale_flat_dagster
+```
+
+To run the dagster webserver:
+
+```bash
+DAGSTER_DBT_PARSE_PROJECT_ON_LOAD=1 dagster dev
+```
+
+We can now trigger the dbt pipeline from within Dagster by selecting the assets and clicking 'Materialize selected'.
+
+We can even schedule the dbt pipeline to run daily by uncommenting the code in `resale_flat_dagster/resale_flat_dagster/schedules.py`. Now click 'Reload definitions' and you will see the new schedule.
