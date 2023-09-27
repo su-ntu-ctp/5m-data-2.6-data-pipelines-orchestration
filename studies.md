@@ -2,8 +2,7 @@
 
 ## Brief
 
-In this lesson, we will be learning about data architecture concepts, principles and types. We will create and read data from one of the most popular NoSQL databases- Redis,
-and get data from Google Cloud Storage.
+In this lesson, we will be learning about ELT and data orchestration concepts. We will create an ELT data pipeline with Meltano and Dbt, then orchestrate and schedule a data pipeline with Dagster.
 
 ### ELT
 
@@ -13,4 +12,3 @@ and get data from Google Cloud Storage.
 ### Data Orchestration
 
 - [What is Data Orchestration](https://www.montecarlodata.com/blog-what-is-data-orchestration/)
-- [Dagster Tutorial](https://docs.dagster.io/tutorial/introduction) (Read through Part 1 to 5)

@@ -18,7 +18,7 @@ Learners will understand:
 
 Learners will be able to:
 
-- Create an ELT data pipeline with Meltano and dbt.
+- Create an ELT data pipeline with Meltano and Dbt.
 - Orchestrate and schedule a data pipeline with Dagster.
 
 ## Lesson Plan
@@ -29,9 +29,9 @@ Learners will be able to:
 | 20 mins  | Activity                | Recap on self-study and prework materials.               |
 | 40 mins  | Code-along              | Part 1: Hands-on with ELT: Github to BigQuery.           |
 |          | **1 HR MARK**           |
-| 30 mins  | Concept                 | Part 1: Hands-on with ELT: Postgres to BigQuery.         |
+| 30 mins  | Code-along              | Part 1: Hands-on with ELT: Postgres to BigQuery.         |
 | 10 mins  | Break                   |                                                          |
-| 20 mins  | Concept                 | Part 1: Hands-on with ELT: Transform with dbt.           |
+| 20 mins  | Code-along              | Part 1: Hands-on with ELT: Transform with Dbt.           |
 |          | **2 HR MARK**           |
 | 50 mins  | Code-along              | Part 2: Hands-on with Orchestration.                     |
 | 10 mins  | Briefing / Q&A          | Brief on references, assignment, quiz and Q&A.           |

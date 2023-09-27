@@ -12,7 +12,7 @@ Due to the rise of cloud data warehouse, data pipelines and ingestion model has 
 
 In this lesson, we will instead use a framework (and platform) called `Meltano` which handles the end-to-end data pipeline, from **ingestion** (_Extract_ and _Load_), to _Transform_ via `dbt` once the data is loaded into the data warehouse.
 
-We will then use an orchestration framework called `dagster` to orchestrate and schedule the ELT pipeline.
+We will also learn about an orchestration framework called `dagster`. Data orchestration is the process of automating the data pipeline, including scheduling, monitoring, and alerting. `dagster` is an open-source data orchestration framework for data engineering, data science, and machine learning pipelines.
 
 ---
 
@@ -167,7 +167,7 @@ Here are the connection details:
 > 3. Configure the extractor interactively with the connection details above (also set the `filter_schemas`).
 > 4. Run the pipeline with the `target-bigquery` loader. (It will take about 25 mins to complete due to the large amount of data.)
 
-### Create dbt project
+### Create Dbt project
 
 Let's create a dbt project to transform the data in BigQuery.
 
@@ -193,7 +193,7 @@ We can start to create the source and models in the dbt project.
 > 2. Create a `prices.sql` model (materialized table) which selects all columns from the source table, cast the `floor_area_sqm` to numeric, then add a new column `price_per_sqm` which is the `resale_price` divided by `floor_area_sqm`.
 > 3. Create a `prices_by_town_type_model.sql` model (materialized table) which selects the `town`, `flat_type` and `flat_model` columns from `prices`, group by them and calculate the average of `floor_area_sqm`, `resale_price` and `price_per_sqm`. Finally, sort by `town`, `flat_type` and `flat_model`.
 
-### Run dbt
+### Run Dbt
 
 Run the dbt project to transform the data.
 
@@ -205,17 +205,11 @@ You should see 2 new tables in the `resale_flat` dataset.
 
 ---
 
-## Part 2 - Hands-on with Orchestration
-
-Combining the 2 pipelines above, we have an end-to-end ELT (data ingestion and transformation) pipeline. However, we need to run the pipelines manually. In this part, we will use `dagster` to orchestrate the pipelines and schedule them to run periodically.
+## Part 2 - Hands-on with Orchestration I
 
 ### Background
 
 `dagster` is a data orchestrator for machine learning, analytics, and ETL. It lets you define pipelines in terms of the data flow between reusable, logical components, then test locally and run anywhere. With a unified view of pipelines and the assets they produce, Dagster can schedule and orchestrate Pandas, Spark, SQL, or anything else that Python can invoke.
-
-We can orchestrate Melatano and dbt pipelines using Dagster. By executing the commands from within Dagster, we get to take full advantage of its capabilities such as scheduling, dependency management, end-to-end testing, partitioning and more.
-
-![dagster](assets/dagster.png)
 
 ### Create a Dagster Project
 
@@ -225,104 +219,198 @@ First, reactivate the conda environment.
 conda activate elt
 ```
 
-We will create a Dagster project and use it to orchestrate the Meltano pipelines.
+To create a new Dagster project:
 
 ```bash
 dagster project scaffold --name dagster-orchestration
 ```
 
-Add the `dagster-meltano` library as a required install item in the Dagster project `setup.py`. Then run the following:
+After running this command, you should see a new directory called `dagster-orchestration` in your current directory. This directory contains the files that make up your Dagster project. Next, add the following dependencies to the `setup.py` file:
+
+- `requests` will be used to download data from the internet
+- `pandas` is a popular library for working with tabular data
+- `matplotlib` makes it easy to make charts in Python
+- `dagster_duckdb` manages how Dagster can read and write to DuckDB
+- `dagster_duckdb_pandas` allows loading data from DuckDB into Pandas DataFrames
+
+Then install the Python dependencies by:
 
 ```bash
+cd dagster-orchestration
 pip install -e ".[dev]"
+```
+
+### Introduction to Software-defined assets, Pipelines, Jobs and Schedule
+
+In Dagster, the main way to create data pipelines is by writing Software-defined `asset`s (SDA). You can connect assets together (that depend on each other) to form a pipeline. An asset is a logical unit of data that can be produced or consumed by a pipeline. Assets can be any type of object, e.g.
+
+- A database table or view
+- A file, such as in your local machine or object storage like Google Cloud Storage
+- A machine learning model
+
+In this project, we will create 2 assets:
+
+- `pandas_releases` - make a request to Github API to get the releases of `pandas` library, then load the data into a Pandas DataFrame
+- `summary_statistics` - calculate the summary statistics of the `pandas_releases` DataFrame
+
+You can specify the dependencies between assets to define a pipeline. In our pipeline, the `summary_statistics` asset depends on the `pandas_releases` asset.
+
+A `job` lets you target a selection of assets to materialize them together as a single action. Assets can also belong to multiple jobs.
+
+After defining a job, it can be attached to a `schedule`. A schedule's responsibility is to start a run of the assigned job at a specified time.
+
+### Introduction to I/O managers
+
+Dagster uses I/O managers to manage how data is read from and written to assets. I/O stands for input and output. They manage input by reading an asset from where it’s stored and loading it into memory to be used by a dependent asset. They control output by writing the assets to the location configured.
+
+We will configure an I/O manager for reading/writing to database (file to storage and others are also supported).
+
+### Create assets and definitions
+
+We will now create the assets and definitions for our pipeline.
+
+Replace the content in `dagster-orchestration/dagster_orchestration/assets.py` with the following:
+
+```python
+import base64
+from io import BytesIO
+from typing import Dict
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import requests
+from dagster import AssetExecutionContext, MetadataValue, asset
+
+
+@asset
+def pandas_releases(
+    context: AssetExecutionContext,
+) -> pd.DataFrame:
+    access_token = "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"
+    response = requests.get(
+        "https://api.github.com/repos/pandas-dev/pandas/releases?per_page=100",
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {access_token}",
+        },
+    )
+
+    releases_with_essential_fields = [
+        {
+            "version": release["tag_name"],
+            "published_at": release["published_at"],
+            "summary": release["body"],
+        }
+        for release in response.json()
+    ]
+    df = pd.DataFrame(releases_with_essential_fields)
+    df["published_at"] = pd.to_datetime(df["published_at"])
+
+    context.add_output_metadata(
+        metadata={
+            "num_records": len(df),
+            "preview": MetadataValue.md(
+                df.sort_values("published_at", ascending=False).head().to_markdown()
+            ),
+        }
+    )
+
+    return df  # return df and the I/O manager will save it
+
+
+@asset
+def summary_statistics(
+    context: AssetExecutionContext,
+    pandas_releases: pd.DataFrame,
+) -> pd.DataFrame:
+    counts = {
+        "new_features": pandas_releases.summary.str.contains("feature").sum(),
+        "bug_fixes": pandas_releases.summary.str.contains("bug").sum(),
+        "performance_improvements": pandas_releases.summary.str.contains(
+            "performance"
+        ).sum(),
+    }
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(list(counts.keys()), list(counts.values()))
+    plt.xticks(rotation=45, ha="right")
+    plt.title("Count of Releases by Type in Pandas")
+    plt.tight_layout()
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format="png")
+    image_data = base64.b64encode(buffer.getvalue())
+
+    md_content = f"![img](data:image/png;base64,{image_data.decode()})"
+
+    context.add_output_metadata(metadata={"plot": MetadataValue.md(md_content)})
+
+    return pd.DataFrame(
+        {"type": counts.keys(), "count": counts.values()}
+    )  # return df and the I/O manager will save it
+```
+
+The first asset- `pandas_releases` makes a request to Github API (the same code we used in unit 2.4) to get the releases of `pandas` library, then load the data into a Pandas DataFrame. It also adds some metadata to the asset, which will be saved by the I/O manager.
+
+The second asset- `summary_statistics` calculates the summary statistics of the `pandas_releases` DataFrame. It also adds a bar chart image to the asset, which will be saved by the I/O manager.
+
+Replace the content in `dagster-orchestration/dagster_orchestration/__init__.py` with the following:
+
+```python
+from dagster import (
+    AssetSelection,
+    Definitions,
+    ScheduleDefinition,
+    define_asset_job,
+    load_assets_from_modules,
+)
+from dagster_duckdb_pandas import DuckDBPandasIOManager
+
+from . import assets
+
+all_assets = load_assets_from_modules([assets])
+
+# define the job that will materialize the assets
+pandas_job = define_asset_job("pandas_job", selection=AssetSelection.all())
+
+# a ScheduleDefinition the job it should run and a cron schedule of how frequently to run it
+pandas_schedule = ScheduleDefinition(
+    job=pandas_job, cron_schedule="0 0 * * *"  # every day at midnight
+)
+
+database_io_manager = DuckDBPandasIOManager(database="analytics.pandas_releases")
+
+defs = Definitions(
+    assets=all_assets,
+    schedules=[pandas_schedule],
+    resources={
+        "io_manager": database_io_manager,
+    },
+)
+```
+
+Dagster definitions are entities that Dagster learns about by importing your code. There are a variety of definitions, including assets, jobs, schedules, sensors, and more.
+
+Managing one type of definition, such as assets, is easy. However, it can quickly become unruly as your project grows to have a variety of definitions. To combine definitions and have them aware of each other, Dagster provides a utility called the `Definitions` object.
+
+### Run the pipeline
+
+Let's launch the Dagster UI, which allows us to explore the data assets, manually launch runs of the pipeline, and view the results of past runs.
+
+```bash
 dagster dev
 ```
 
-### Using the Dagster-Meltano library
+Then open the UI at http://localhost:3000.
 
-Replace the content of `dagster-orchestration/dagster_orchestration/__init__.py` with the following:
+To materialize an asset means to create or update it. Dagster materializes assets by executing the asset's function or triggering an integration. Navigate to Jobs -> `pandas_job`, there you will see the pipeline (dependency between the assets). You can manually trigger the pipeline by clicking on the 'Materialize all' button in the upper right corner of the screen. This will create a Dagster run that will materialize your assets.
 
-```python
-from dagster import Definitions, ScheduleDefinition, job
-from dagster_meltano import meltano_resource, meltano_run_op
+To follow the progress of the materialization and monitor the logs, each run has a dedicated page. To find the page:
 
+- Click on the Runs tab in the upper navigation bar
+- Click the value in the Run ID column on the table of the Runs page
+- The top section displays the progress, and the bottom section live updates with the logs
 
-@job(resource_defs={"meltano": meltano_resource})
-def run_elt_job():
-   tap_done = meltano_run_op("tap-github target-bigquery")()
+The metadata of the asset are available under the respective assets name in the Overview tab of `pandas_job` or in the Assets tab. Click on the 'Show Markdown' to see the redered markdown or image.
 
-# Addition: a ScheduleDefinition the job it should run and a cron schedule of how frequently to run it
-elt_schedule = ScheduleDefinition(
-    job=run_elt_job,
-    cron_schedule="0 0 * * *",  # every day at midnight
-)
-
-defs = Definitions(
-    schedules=[elt_schedule],
-)
-```
-
-### Launching a Test Run of the Schedule
-
-Refresh the Dagster project, look for the 'Launchpad' tab after clicking on the job name in the left nav.
-
-When initiating a run in Dagster, we can pass along configuration variables at run time such as the location of the Meltano project:
-
-```yml
-resources:
-  meltano:
-    config:
-      project_dir: #full-path-to-the-meltano-project-directory
-ops:
-  tap_github_target_bigquery:
-    config:
-      env:
-        TAP_GITHUB_AUTH_TOKEN: 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
-```
-
-Then click 'Launch run'.
-
-### Using dbt with Dagster
-
-We can also orchestrate dbt with Dagster.
-
-First, activate the conda environment.
-
-```bash
-conda activate dwh
-```
-
-Create a file named `profiles.yml` in the `resale_flat` dbt project directory with the following content:
-
-```yml
-resale_flat:
-  outputs:
-    dev:
-      dataset: resale_flat
-      job_execution_timeout_seconds: 300
-      job_retries: 1
-      keyfile: #full-path-to-the-service-account-key-file
-      location: US
-      method: service-account
-      priority: interactive
-      project: meltano-learn
-      threads: 1
-      type: bigquery
-  target: dev
-```
-
-Then create a new Dagster project within the same directory.
-
-```bash
-dagster-dbt project scaffold --project-name resale_flat_dagster
-```
-
-To run the dagster webserver:
-
-```bash
-DAGSTER_DBT_PARSE_PROJECT_ON_LOAD=1 dagster dev
-```
-
-We can now trigger the dbt pipeline from within Dagster by selecting the assets and clicking 'Materialize selected'.
-
-We can even schedule the dbt pipeline to run daily by uncommenting the code in `resale_flat_dagster/resale_flat_dagster/schedules.py`. Now click 'Reload definitions' and you will see the new schedule.
+You can also view the Job Schedule in the Schedules tab of `dagster_orchestration`. The schedule will run every day at midnight.
