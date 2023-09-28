@@ -10,9 +10,9 @@ Create the conda environment based on the `environment.yml` file. We will also b
 
 Due to the rise of cloud data warehouse, data pipelines and ingestion model has shifted from Extract, Transform and Load (ETL) to Extract, Load and Transform (ELT), as alluded to in the previous unit. We learnt about the _Transform_ part in unit 2.5, as well as the _Extract_ (data extraction and web scraping) in unit 2.4.
 
-In this lesson, we will instead use a framework (and platform) called `Meltano` which handles the end-to-end data pipeline, from **ingestion** (_Extract_ and _Load_), to _Transform_ via `dbt` once the data is loaded into the data warehouse.
+In this lesson, we will instead use a framework (and platform) called `Meltano` which handles the end-to-end data pipeline, from **ingestion** (_Extract_ and _Load_), to _Transform_ via `Dbt` once the data is loaded into the data warehouse.
 
-We will also learn about an orchestration framework called `dagster`. Data orchestration is the process of automating the data pipeline, including scheduling, monitoring, and alerting. `dagster` is an open-source data orchestration framework for data engineering, data science, and machine learning pipelines.
+We will also learn about an orchestration framework called `Dagster`. Data orchestration is the process of automating the data pipeline, including scheduling, monitoring, and alerting. `Dagster` is an open-source data orchestration framework for data engineering, data science, and machine learning pipelines.
 
 ---
 
@@ -169,7 +169,7 @@ Here are the connection details:
 
 ### Create Dbt project
 
-Let's create a dbt project to transform the data in BigQuery.
+Let's create a Dbt project to transform the data in BigQuery.
 
 First, activate the conda environment from unit 2.5.
 
@@ -209,7 +209,7 @@ You should see 2 new tables in the `resale_flat` dataset.
 
 ### Background
 
-`dagster` is a data orchestrator for machine learning, analytics, and ETL. It lets you define pipelines in terms of the data flow between reusable, logical components, then test locally and run anywhere. With a unified view of pipelines and the assets they produce, Dagster can schedule and orchestrate Pandas, Spark, SQL, or anything else that Python can invoke.
+`Dagster` is a data orchestrator for machine learning, analytics, and ETL. It lets you define pipelines in terms of the data flow between reusable, logical components, then test locally and run anywhere. With a unified view of pipelines and the assets they produce, Dagster can schedule and orchestrate Pandas, Spark, SQL, or anything else that Python can invoke.
 
 ### Create a Dagster Project
 
@@ -240,9 +240,9 @@ cd dagster-orchestration
 pip install -e ".[dev]"
 ```
 
-### Introduction to Software-defined assets, Pipelines, Jobs and Schedule
+### Introduction to Software-Defined Assets, Pipelines, Jobs and Schedule
 
-In Dagster, the main way to create data pipelines is by writing Software-defined `asset`s (SDA). You can connect assets together (that depend on each other) to form a pipeline. An asset is a logical unit of data that can be produced or consumed by a pipeline. Assets can be any type of object, e.g.
+In Dagster, the main way to create data pipelines is by writing `Software-Defined Assets` (SDA). You can connect assets together (that depend on each other) to form a pipeline. An asset is a logical unit of data that can be produced or consumed by a pipeline. Assets can be any type of object, e.g.
 
 - A database table or view
 - A file, such as in your local machine or object storage like Google Cloud Storage
@@ -259,13 +259,13 @@ A `job` lets you target a selection of assets to materialize them together as a 
 
 After defining a job, it can be attached to a `schedule`. A schedule's responsibility is to start a run of the assigned job at a specified time.
 
-### Introduction to I/O managers
+### Introduction to I/O Managers
 
 Dagster uses I/O managers to manage how data is read from and written to assets. I/O stands for input and output. They manage input by reading an asset from where it’s stored and loading it into memory to be used by a dependent asset. They control output by writing the assets to the location configured.
 
 We will configure an I/O manager for reading/writing to database (file to storage and others are also supported).
 
-### Create assets and definitions
+### Create Assets and Definitions
 
 We will now create the assets and definitions for our pipeline.
 
