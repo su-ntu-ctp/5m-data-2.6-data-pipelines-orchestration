@@ -178,11 +178,20 @@ You will see the logs printed out in your console. Once the pipeline is complete
 
 ### Add an Extractor to Pull Data from Postgres
 
-We will now add an extractor to pull data from a Postgres database. We will use the `tap-postgres` extractor to pull data from a Postgres database hosted on Supabase. Side note: you need to go to supbase, create an account and load the housing csv from the `data/` folder.
+We will now add an extractor to pull data from a Postgres database. 
 
-The database `postgres` contains a table `public.resale_flat_prices_from_jan_2017` with the data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in unit 1.4.
+Create a new Meltano project by running:
 
-Take note of your connection details:
+```bash
+meltano init meltano-resale
+cd meltano-resale
+```
+
+We will use the `tap-postgres` extractor to pull data from a Postgres database hosted on Supabase. Side note: you need to go to supbase, create an account and load the housing csv from the `data/` folder - please take note of the database password. 
+
+The database `postgres` now contains a table `public.resale_flat_prices_from_jan_2017` with the data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in module 1.
+
+From Supabase, take note of your connection details:
 
 - Host: (example) `db.kjytsuhjlrmjodturbcb.supabase.co`
 - Port: (example) `5432`
@@ -193,7 +202,8 @@ Take note of your connection details:
 > 1. Inspect the table schema and data using DBeaver.
 > 2. Add the `tap-postgres` extractor to the Meltano project.
 > 3. Configure the extractor interactively with the connection details above (also set the `filter_schemas`). (i.e '["public"]')
-> 4. Run the pipeline with the `target-bigquery` loader. (It will take about 25 mins to complete due to the large amount of data.)
+> 4. Create a dataset in BigQuery called `resale` (multi-region: US).
+> 5. Run the pipeline with the `target-bigquery` loader - for `dataset`, set as `resale` (It will take about 25 mins to complete due to the large amount of data.)
 
 ### Create Dbt project
 
