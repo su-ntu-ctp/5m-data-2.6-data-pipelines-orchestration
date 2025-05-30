@@ -78,7 +78,7 @@ cd meltano-ingestion
 We're going to add an extrator for GitHub to get our data. An extractor is responsible for pulling data out of any data source.
 We will use the `tap-github` extractor to pull the _releases_ of `pandas` library from Github. This will be a replication of what we did in unit 2.4.
 
-To add the extractor to our project, run:
+To add the extractor to our project, run (make sure you are in the `meltano-ingestion` folder!):
 
 ```bash
 meltano add extractor tap-github
@@ -92,7 +92,7 @@ meltano config tap-github set --interactive
 
 You will be prompted to enter many options, we just need to enter the following:
 
-- `auth_token`: Please use the same auth token you created for your own repo during the last lesson
+- `auth_token`: Please use the same auth token (ie. personal access token) you created for your own Github repo during earlier lesson
 - `repositories`: `["pandas-dev/pandas"]`
 
 This will add the configuration to the `meltano.yml` file, and the secret auth token to the `.env` file. Note that if you want to set them programatically, you can refer to: https://hub.meltano.com/extractors/tap-github/ 
