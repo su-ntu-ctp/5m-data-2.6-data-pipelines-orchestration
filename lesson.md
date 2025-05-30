@@ -158,7 +158,7 @@ meltano config target-bigquery set --interactive
 
 Set the following options:
 
-- `project`: `meltano-learn`
+- `project`: *your_gcp_project_id_for_meltano_learn_project*
 - `dataset`: `ingestion`
 - `credentials_path`: _full path to the service account key file_
 - `method`: `batch_job`
@@ -182,13 +182,13 @@ We will now add an extractor to pull data from a Postgres database. We will use 
 
 The database `postgres` contains a table `public.resale_flat_prices_from_jan_2017` with the data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in unit 1.4.
 
-Here are the connection details:
+Take note of your connection details:
 
-- Host: `db.kjytsuhjlrmjodturbcb.supabase.co`
-- Port: `5432`
+- Host: (example) `db.kjytsuhjlrmjodturbcb.supabase.co`
+- Port: (example) `5432`
 - Database: `postgres`
-- Username: `su_user`
-- Password: `MP8EtwVgM7w`
+- Username: (example) `su_user`
+- Password: *your_password*
 
 > 1. Inspect the table schema and data using DBeaver.
 > 2. Add the `tap-postgres` extractor to the Meltano project.
