@@ -178,7 +178,7 @@ You will see the logs printed out in your console. Once the pipeline is complete
 
 ### Add an Extractor to Pull Data from Postgres
 
-We will now add an extractor to pull data from a Postgres database. We will use the `tap-postgres` extractor to pull data from a Postgres database hosted on Supabase. Side note: you need to go to supbase, create an account and load the housing csv from previous lesson (1.4)
+We will now add an extractor to pull data from a Postgres database. We will use the `tap-postgres` extractor to pull data from a Postgres database hosted on Supabase. Side note: you need to go to supbase, create an account and load the housing csv from the `data/` folder.
 
 The database `postgres` contains a table `public.resale_flat_prices_from_jan_2017` with the data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in unit 1.4.
 
