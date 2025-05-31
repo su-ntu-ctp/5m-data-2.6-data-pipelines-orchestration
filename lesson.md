@@ -308,7 +308,7 @@ We will configure an I/O manager for reading/writing to database (file to storag
 
 We will now create the assets and definitions for our pipeline.
 
-Replace the content in `dagster-orchestration/dagster_orchestration/assets.py` with the following:
+Replace the content in `dagster-orchestration/dagster_orchestration/assets.py` with the below. Also you need to replace `<YOUR-GITHUB-PERSONAL-ACCESS-TOKEN>` with your Github personal access token.
 
 ```python
 import base64
@@ -325,7 +325,7 @@ from dagster import AssetExecutionContext, MetadataValue, asset
 def pandas_releases(
     context: AssetExecutionContext,
 ) -> pd.DataFrame:
-    access_token = "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"
+    access_token = "<YOUR-GITHUB-PERSONAL-ACCESS-TOKEN>"
     response = requests.get(
         "https://api.github.com/repos/pandas-dev/pandas/releases?per_page=100",
         headers={
