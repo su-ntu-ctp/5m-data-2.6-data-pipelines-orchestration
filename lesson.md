@@ -393,7 +393,7 @@ The first asset- `pandas_releases` makes a request to Github API (the same code 
 
 The second asset- `summary_statistics` calculates the summary statistics of the `pandas_releases` DataFrame. It also adds a bar chart image to the asset, which will be saved by the I/O manager.
 
-Replace the content in `dagster-orchestration/dagster_orchestration/__init__.py` with the following:
+Replace the content in `dagster-orchestration/dagster_orchestration/definitions.py` with the following:
 
 ```python
 from dagster import (
@@ -410,17 +410,20 @@ from . import assets
 all_assets = load_assets_from_modules([assets])
 
 # define the job that will materialize the assets
-pandas_job = define_asset_job("pandas_job", selection=AssetSelection.all())
+pandas_job = define_asset_job(name="pandas_job", selection=AssetSelection.all())
 
 # a ScheduleDefinition the job it should run and a cron schedule of how frequently to run it
 pandas_schedule = ScheduleDefinition(
-    job=pandas_job, cron_schedule="0 0 * * *"  # every day at midnight
+    name="pandas_schedule",
+    job=pandas_job, 
+    cron_schedule="0 0 * * *"  # every day at midnight
 )
 
 database_io_manager = DuckDBPandasIOManager(database="analytics.pandas_releases")
 
 defs = Definitions(
     assets=all_assets,
+    jobs=[pandas_job],
     schedules=[pandas_schedule],
     resources={
         "io_manager": database_io_manager,
