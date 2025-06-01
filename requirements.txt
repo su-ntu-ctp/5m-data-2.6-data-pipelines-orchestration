@@ -1,4 +1,5 @@
 dagster==1.10.3
+dagster-webserver==1.10.18
 meltano==3.6.0
 dbt-core==1.9.2
 dbt-bigquery==1.9.1
