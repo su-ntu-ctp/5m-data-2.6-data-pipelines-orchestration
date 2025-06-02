@@ -14,6 +14,31 @@ In this lesson, we will instead use a framework (and platform) called `Meltano` 
 
 We will also learn about an orchestration framework called `Dagster`. Data orchestration is the process of automating the data pipeline, including scheduling, monitoring, and alerting. `Dagster` is an open-source data orchestration framework for data engineering, data science, and machine learning pipelines.
 
+
+## Initial Set up
+
+Ensure you have conda setup. Please do:
+
+```
+conda env update -f environment.yml
+```
+
+This should install the `elt` conda environment. You can activate it via:
+
+```
+conda activate elt
+```
+
+Lastly, one more step to install the packages:
+
+```
+pip install -r requirements.txt
+```
+
+Also - please ensure you have a Google cloud setup for GCP as well as installed the gcloud CLI:
+
+https://cloud.google.com/sdk/docs/install 
+
 ---
 
 ## Part 1 - Hands-on with ELT
@@ -53,7 +78,7 @@ cd meltano-ingestion
 We're going to add an extrator for GitHub to get our data. An extractor is responsible for pulling data out of any data source.
 We will use the `tap-github` extractor to pull the _releases_ of `pandas` library from Github. This will be a replication of what we did in unit 2.4.
 
-To add the extractor to our project, run:
+To add the extractor to our project, run (make sure you are in the `meltano-ingestion` folder!):
 
 ```bash
 meltano add extractor tap-github
@@ -67,10 +92,10 @@ meltano config tap-github set --interactive
 
 You will be prompted to enter many options, we just need to enter the following:
 
-- `auth_token`: `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`
+- `auth_token`: Please use the same auth token (ie. personal access token) you created for your own Github repo during earlier lesson
 - `repositories`: `["pandas-dev/pandas"]`
 
-This will add the configuration to the `meltano.yml` file, and the secret auth token to the `.env` file.
+This will add the configuration to the `meltano.yml` file, and the secret auth token to the `.env` file. Note that if you want to set them programatically, you can refer to: https://hub.meltano.com/extractors/tap-github/ 
 
 Now that the extractor has been configured, it'll know where and how to find your data, but won't yet know which specific entities and attributes (tables and columns) you're interested in.
 
@@ -87,6 +112,7 @@ If you recall from unit 2.4, we are interested in the `releases` entity, with th
 - `published_at`
 
 To select the entities and attributes, run:
+see: https://docs.meltano.com/guide/integration#selecting-entities-and-attributes-for-extraction 
 
 ```bash
 meltano select tap-github releases tag_name
@@ -112,6 +138,8 @@ meltano run tap-github target-jsonl
 
 The extracted data will be dumped into a JSON file in the `output/` directory.
 
+You can find the above tutorial here: https://docs.meltano.com/getting-started/part1/#select-entities-and-attributes-to-extract
+
 ### Add a Loader to Load Data into BigQuery
 
 Before we can load the data into BigQuery, let's create a new project called `meltano-learn`. Then create a dataset in BigQuery called `ingestion` (multi-region: US).
@@ -130,7 +158,7 @@ meltano config target-bigquery set --interactive
 
 Set the following options:
 
-- `project`: `meltano-learn`
+- `project`: *your_gcp_project_id_for_meltano_learn_project*
 - `dataset`: `ingestion`
 - `credentials_path`: _full path to the service account key file_
 - `method`: `batch_job`
@@ -150,22 +178,33 @@ You will see the logs printed out in your console. Once the pipeline is complete
 
 ### Add an Extractor to Pull Data from Postgres
 
-We will now add an extractor to pull data from a Postgres database. We will use the `tap-postgres` extractor to pull data from a Postgres database hosted on Supabase.
+We will now add an extractor to pull data from a Postgres database. 
 
-The database `postgres` contains a table `public.resale_flat_prices_from_jan_2017` with the data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in unit 1.4.
+Create a new Meltano project by running:
 
-Here are the connection details:
+```bash
+meltano init meltano-resale
+cd meltano-resale
+```
 
-- Host: `db.kjytsuhjlrmjodturbcb.supabase.co`
-- Port: `5432`
+We will use the `tap-postgres` extractor to pull data from a Postgres database hosted on Supabase. Side note: you need to go to supbase, create an account and load the housing csv from the `data/` folder - please take note of the database password. 
+
+The database `postgres` now contains a table `public.resale_flat_prices_from_jan_2017` with the data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in module 1.
+
+From Supabase, take note of your connection details:
+
+- Host: (example) `db.kjytsuhjlrmjodturbcb.supabase.co`
+- Port: (example) `5432`
 - Database: `postgres`
-- Username: `su_user`
-- Password: `MP8EtwVgM7w`
+- Username: (example) `su_user`
+- Password: *your_password*
 
 > 1. Inspect the table schema and data using DBeaver.
 > 2. Add the `tap-postgres` extractor to the Meltano project.
-> 3. Configure the extractor interactively with the connection details above (also set the `filter_schemas`).
-> 4. Run the pipeline with the `target-bigquery` loader. (It will take about 25 mins to complete due to the large amount of data.)
+> 3. Configure the extractor interactively with the connection details above (also set the `filter_schemas`). (i.e '["public"]')
+> 4. Create a dataset in BigQuery called `resale` (multi-region: US).
+> 5. Configure target interactively similar to above - for `dataset`, set as `resale`. 
+> 6. Run the pipeline with the `target-bigquery` loader (It will take about 25 mins to complete due to the large amount of data.)
 
 ### Create Dbt project
 
@@ -269,7 +308,7 @@ We will configure an I/O manager for reading/writing to database (file to storag
 
 We will now create the assets and definitions for our pipeline.
 
-Replace the content in `dagster-orchestration/dagster_orchestration/assets.py` with the following:
+Replace the content in `dagster-orchestration/dagster_orchestration/assets.py` with the below. Also you need to replace `<YOUR-GITHUB-PERSONAL-ACCESS-TOKEN>` with your Github personal access token.
 
 ```python
 import base64
@@ -286,7 +325,7 @@ from dagster import AssetExecutionContext, MetadataValue, asset
 def pandas_releases(
     context: AssetExecutionContext,
 ) -> pd.DataFrame:
-    access_token = "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"
+    access_token = "<YOUR-GITHUB-PERSONAL-ACCESS-TOKEN>"
     response = requests.get(
         "https://api.github.com/repos/pandas-dev/pandas/releases?per_page=100",
         headers={
@@ -354,7 +393,7 @@ The first asset- `pandas_releases` makes a request to Github API (the same code 
 
 The second asset- `summary_statistics` calculates the summary statistics of the `pandas_releases` DataFrame. It also adds a bar chart image to the asset, which will be saved by the I/O manager.
 
-Replace the content in `dagster-orchestration/dagster_orchestration/__init__.py` with the following:
+Replace the content in `dagster-orchestration/dagster_orchestration/definitions.py` with the following:
 
 ```python
 from dagster import (
@@ -371,17 +410,20 @@ from . import assets
 all_assets = load_assets_from_modules([assets])
 
 # define the job that will materialize the assets
-pandas_job = define_asset_job("pandas_job", selection=AssetSelection.all())
+pandas_job = define_asset_job(name="pandas_job", selection=AssetSelection.all())
 
 # a ScheduleDefinition the job it should run and a cron schedule of how frequently to run it
 pandas_schedule = ScheduleDefinition(
-    job=pandas_job, cron_schedule="0 0 * * *"  # every day at midnight
+    name="pandas_schedule",
+    job=pandas_job, 
+    cron_schedule="0 0 * * *"  # every day at midnight
 )
 
 database_io_manager = DuckDBPandasIOManager(database="analytics.pandas_releases")
 
 defs = Definitions(
     assets=all_assets,
+    jobs=[pandas_job],
     schedules=[pandas_schedule],
     resources={
         "io_manager": database_io_manager,
