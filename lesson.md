@@ -176,9 +176,19 @@ meltano run tap-github target-bigquery
 
 You will see the logs printed out in your console. Once the pipeline is completed, you can check the data in BigQuery.
 
-### Add an Extractor to Pull Data from Postgres
+### Add an Extractor to Pull Data from Postgres (Supabase)
 
-We will now add an extractor to pull data from a Postgres database. 
+We will use the `tap-postgres` extractor to pull data from a Postgres database hosted on [Supabase](https://supabase.com). 
+
+> Supabase is an open-source backend-as-a-service platform that provides a suite of tools for building applications powered by PostgreSQL (Postgres) as its database. Postgres is a powerful, object-relational database system known for its reliability, extensibility and compliance with SQL standards. Supabase simplifies database management by offering an intuitive interface to interact with Postgres, making it a popular choice for developers looking for a scalable and flexible backend solution.
+
+Go to the [Supabase](https://supabase.com) and create an account. Download the HDB housing data `Resale*.csv` file from the `data/` folder. Follow the instructions in this [setup file](supabase_db_setup_hdb.md) to setup your Postgres database table with the HDB housing data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in module 1.
+
+From Supabase, take note of your connection details from the Connection window, under Session Spooler:
+
+![meltano](assets/supabase-screenshot.png)
+
+We're going to add an extrator for Postgress to get our data. An extractor is responsible for pulling data out of any data source. We will use the `tap-postgress` extractor to pull data from the Supabase server. 
 
 Create a new Meltano project by running:
 
@@ -186,38 +196,6 @@ Create a new Meltano project by running:
 meltano init meltano-resale
 cd meltano-resale
 ```
-
-We will use the `tap-postgres` extractor to pull data from a Postgres database hosted on Supabase. Side note: you need to go to supbase, create an account and load the housing csv from the `data/` folder - please take note of the database password. 
-
-The database `postgres` now contains a table `public.resale_flat_prices_from_jan_2017` with the data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in module 1.
-
-After the table is created, you can add a primary key by running the following query:
-
-```sql
-    ALTER TABLE <<your_table_name>>
-    ADD COLUMN id SERIAL PRIMARY KEY;
-```
-
-From Supabase, take note of your connection details from the Connection window, under Session Spooler:
-
-![meltano](assets/supabase-screenshot.png)
-
-- Host: (example) `aws-0-ap-southeast-1.pooler.supabase.com` *(example)*
-- Port: (example) `5432`
-- Database: `postgres`
-- Username: (example) `su_user`
-- Password: *your_password*
-
-> 1. Inspect the table schema and data using DBeaver.
-> 2. Add the `tap-postgres` extractor to the Meltano project.
-> 3. Configure the extractor interactively with the connection details above (also set the `filter_schemas`). (i.e '["public"]')
-> 4. Create a dataset in BigQuery called `resale` (multi-region: US).
-> 5. Configure target interactively similar to above - for `dataset`, set as `resale`. 
-> 6. Run the pipeline with the `target-bigquery` loader (It will take about 25 mins to complete due to the large amount of data.)
-
-We're going to add an extrator for Postgress to get our data. An extractor is responsible for pulling data out of any data source.
-We will use the `tap-postgress` extractor to pull data from the Supabase server. 
-
 To add the extractor to our project, run:
 
 ```bash
@@ -238,6 +216,13 @@ Configure the following options:
 - `password`: *database password*
 - `port`: `5432`
 - `user`: *postgres.username*
+
+> 1. Inspect the table schema and data using DBeaver.
+> 2. Add the `tap-postgres` extractor to the Meltano project.
+> 3. Configure the extractor interactively with the connection details above (also set the `filter_schemas`). (i.e '["public"]')
+> 4. Create a dataset in BigQuery called `resale` (multi-region: US).
+> 5. Configure target interactively similar to above - for `dataset`, set as `resale`. 
+> 6. Run the pipeline with the `target-bigquery` loader (It will take about 25 mins to complete due to the large amount of data.)
 
 Test your configuration:
 
