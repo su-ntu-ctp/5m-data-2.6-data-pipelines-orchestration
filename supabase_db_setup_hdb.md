@@ -89,14 +89,16 @@ To get the connection setting from Supabase, please follow the steps below:
 - The settings that is related to your database will be presented to you.
 
 ### Testing Connection
-If you already encounter connection issue with Meltano, you can choose Python or SQLAlchemy
+If you encounter connection issues with Meltano, you can try choosing Python or SQLAlchemy.
+
 ![assets/select_type.png](assets/select_type.png)
+
 Next to the connection string, the code to test the connection is provided.
 
 ### Possible Connection Error
-In Supabase, it uses IPV6 for direction connection. I being to suspect the problem may depends on our ISP. Anyway, there is a warning as shown:
+Supabase, uses IPV6 for direct connection, so the problem may depend on your ISP. Anyway, the following warning is shown:
 ![alt text](assets/connect_warning.png)
 
-The solution is to try direct connection first and if not working use session pooler.
+Try direct connection first and if it does not work, use session pooler.
 
 Reference link: https://supabase.com/docs/guides/database/connecting-to-postgres
