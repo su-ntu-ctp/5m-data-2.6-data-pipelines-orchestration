@@ -191,9 +191,18 @@ We will use the `tap-postgres` extractor to pull data from a Postgres database h
 
 The database `postgres` now contains a table `public.resale_flat_prices_from_jan_2017` with the data of resale flat prices based on registration date from Jan-2017 onwards. It is the same data that we used in module 1.
 
-From Supabase, take note of your connection details:
+After the table is created, you can add a primary key by running the following query:
 
-- Host: (example) `db.kjytsuhjlrmjodturbcb.supabase.co`
+```sql
+    ALTER TABLE <<your_table_name>>
+    ADD COLUMN id SERIAL PRIMARY KEY;
+```
+
+From Supabase, take note of your connection details from the Connection window, under Session Spooler:
+
+![meltano](assets/supabase-screenshot.png)
+
+- Host: (example) `aws-0-ap-southeast-1.pooler.supabase.com` *(example)*
 - Port: (example) `5432`
 - Database: `postgres`
 - Username: (example) `su_user`
@@ -205,6 +214,36 @@ From Supabase, take note of your connection details:
 > 4. Create a dataset in BigQuery called `resale` (multi-region: US).
 > 5. Configure target interactively similar to above - for `dataset`, set as `resale`. 
 > 6. Run the pipeline with the `target-bigquery` loader (It will take about 25 mins to complete due to the large amount of data.)
+
+We're going to add an extrator for Postgress to get our data. An extractor is responsible for pulling data out of any data source.
+We will use the `tap-postgress` extractor to pull data from the Supabase server. 
+
+To add the extractor to our project, run:
+
+```bash
+meltano add extractor tap-postgres
+```
+
+Next, configure the extractor by running:
+
+```bash
+meltano config tap-postgres set --interactive
+```
+
+Configure the following options:
+
+- `database`: `postgres`
+- `filter_schemas`: `['public']`
+- `host`: `aws-0-ap-southeast-1.pooler.supabase.com` *(example)*
+- `password`: *database password*
+- `port`: `5432`
+- `user`: *postgres.username*
+
+Test your configuration:
+
+```bash
+meltano config tap-postgres test
+```
 
 ### Create Dbt project
 
