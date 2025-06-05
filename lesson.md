@@ -217,13 +217,6 @@ Configure the following options:
 - `port`: `5432`
 - `user`: *postgres.username*
 
-> 1. Inspect the table schema and data using DBeaver.
-> 2. Add the `tap-postgres` extractor to the Meltano project.
-> 3. Configure the extractor interactively with the connection details above (also set the `filter_schemas`). (i.e '["public"]')
-> 4. Create a dataset in BigQuery called `resale` (multi-region: US).
-> 5. Configure target interactively similar to above - for `dataset`, set as `resale`. 
-> 6. Run the pipeline with the `target-bigquery` loader (It will take about 25 mins to complete due to the large amount of data.)
-
 Test your configuration:
 
 ```bash
