@@ -243,6 +243,8 @@ Set the following options:
 - `flattening_enabled`: `true`
 - `flattening_max_depth`: `1`
 
+You can refer to an example of the `meltano.yml` in the `solutions` branch of the lesson 2.6 repo [here](https://github.com/su-ntu-ctp/5m-data-2.6-data-pipelines-orchestration/blob/solutions/solutions/meltano-ingestion/meltano.yml).
+
 ### Run Supabase (Postgres) to BigQuery
 
 We can now run the full ingestion (extract-load) pipeline from Supabase to BigQuery.
