@@ -249,9 +249,9 @@ Set the following options:
 - `flattening_enabled`: `true`
 - `flattening_max_depth`: `1`
 
-### Run Github to BigQuery
+### Run Supabase (Postgres) to BigQuery
 
-We can now run the full ingestion (extract-load) pipeline.
+We can now run the full ingestion (extract-load) pipeline from Supabase to BigQuery.
 
 ```bash
 meltano run tap-postgres target-bigquery
