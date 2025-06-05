@@ -246,6 +246,7 @@ Set the following options:
 - `credentials_path`: _full path to the service account key file_
 - `method`: `batch_job`
 - `denormalized`: `true`
+- `batch_size`: `104857600`
 - `flattening_enabled`: `true`
 - `flattening_max_depth`: `1`
 
