@@ -229,6 +229,37 @@ Test your configuration:
 ```bash
 meltano config tap-postgres test
 ```
+We will now add a loader to load the data into BigQuery.
+
+```bash
+meltano add loader target-bigquery
+```
+
+```bash
+meltano config target-bigquery set --interactive
+```
+
+Set the following options:
+
+- `project`: *your_gcp_project_id_for_meltano_learn_project*
+- `dataset`: `resale`
+- `credentials_path`: _full path to the service account key file_
+- `method`: `batch_job`
+- `denormalized`: `true`
+- `flattening_enabled`: `true`
+- `flattening_max_depth`: `1`
+
+### Run Github to BigQuery
+
+We can now run the full ingestion (extract-load) pipeline.
+
+```bash
+meltano run tap-postgres target-bigquery
+```
+
+It will take about 25 mins to complete due to the large amount of data. You will see the logs printed out in your console. Once the pipeline is completed, you can check the data in BigQuery.
+
+
 
 ### Create Dbt project
 
