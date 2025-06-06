@@ -142,7 +142,7 @@ You can find the above tutorial here: https://docs.meltano.com/getting-started/p
 
 ### Add a Loader to Load Data into BigQuery
 
-Before we can load the data into BigQuery, let's create a new project called `meltano-learn`. Then create a dataset in BigQuery called `ingestion` (multi-region: US).
+In your existing GCP project, go to BigQuery. Then create a dataset in BigQuery called `ingestion` (multi-region: US).
 
 Finally, create a service account with the `BigQuery Admin` role and download the JSON key file to your local machine.
 
@@ -158,7 +158,7 @@ meltano config target-bigquery set --interactive
 
 Set the following options:
 
-- `project`: *your_gcp_project_id_for_meltano_learn_project*
+- `project`: *your_gcp_project_id*
 - `dataset`: `ingestion`
 - `credentials_path`: _full path to the service account key file_
 - `method`: `batch_job`
@@ -234,7 +234,7 @@ meltano config target-bigquery set --interactive
 
 Set the following options:
 
-- `project`: *your_gcp_project_id_for_meltano_learn_project*
+- `project`: *your_gcp_project_id*
 - `dataset`: `resale`
 - `credentials_path`: _full path to the service account key file_
 - `method`: `batch_job`
