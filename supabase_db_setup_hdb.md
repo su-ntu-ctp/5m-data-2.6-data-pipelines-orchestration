@@ -8,16 +8,16 @@
 ![alt text](assets/create_db.png)
 
 
-## Preparing and Download CSV
-- Download the csv file on HDB resale price from the website https://data.gov.sg
-- Please note that as of March 2025, there should be around 201K rows.
+## Preparing Data File
+- The data file named is located at the data [folder](data/) 
+- File name is `ResaleflatpricesbasedonregistrationdatefromJan2017onwards.csv`
 
 ## Importing CSV to Supabase
 - Create a table under table editor but do not enter anything yet.
 
 ![alt text](assets/new_table.png)
 
-- Enter the table name as shown:
+- Enter the table name as shown: `resale_flat_prices_from_jan_2017`
 
 ![alt text](assets/table_name.png)
 
@@ -25,7 +25,7 @@
 
 ![alt text](assets/import_data.png)
 
-- Click browse (some classmate got issue with drag and drop)
+- Click **browse** (some classmate got issue with drag and drop)
 
 ![alt text](assets/browse.png)
 

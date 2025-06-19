@@ -4,7 +4,7 @@
 
 ### Preparation
 
-Create the conda environment based on the `environment.yml` file. We will also be using google cloud (for which the account was created in the previous unit) in this lesson.
+Create the conda environment based on the `elt_environment.yml` file at the [Environment Folder](https://github.com/su-ntu-ctp/5m-data-2.1-intro-big-data-eng/tree/main/environments). We will also be using google cloud (for which the account was created in the previous unit) in this lesson.
 
 ### Lesson Overview
 
@@ -17,23 +17,14 @@ We will also learn about an orchestration framework called `Dagster`. Data orche
 
 ## Initial Set up
 
-Ensure you have conda setup. Please do:
+Ensure you have conda setup as mentioned in the preparation section.
 
-```
-conda env update -f environment.yml
-```
-
-This should install the `elt` conda environment. You can activate it via:
+You should have `elt` conda environment ready. You can activate it via:
 
 ```
 conda activate elt
 ```
 
-Lastly, one more step to install the packages:
-
-```
-pip install -r requirements.txt
-```
 
 Also - please ensure you have a Google cloud setup for GCP as well as installed the gcloud CLI:
 
@@ -120,6 +111,11 @@ meltano select tap-github releases body
 meltano select tap-github releases published_at
 ```
 
+Finally, we can test the connection using the command below:
+```bash
+meltano config tap-github test
+```
+
 ### Add a Dummy Loader to Dump Data into JSON
 
 We add a JSON target to test our pipeline. The JSON target will dump the data into a JSON file.
@@ -158,13 +154,14 @@ meltano config target-bigquery set --interactive
 
 Set the following options:
 
-- `project`: *your_gcp_project_id*
-- `dataset`: `ingestion`
 - `credentials_path`: _full path to the service account key file_
-- `method`: `batch_job`
+- `dataset`: `ingestion`
 - `denormalized`: `true`
 - `flattening_enabled`: `true`
 - `flattening_max_depth`: `1`
+- `method`: `batch_job`
+- `project`: *your_gcp_project_id*
+
 
 ### Run Github to BigQuery
 
@@ -234,14 +231,14 @@ meltano config target-bigquery set --interactive
 
 Set the following options:
 
-- `project`: *your_gcp_project_id*
-- `dataset`: `resale`
-- `credentials_path`: _full path to the service account key file_
-- `method`: `batch_job`
-- `denormalized`: `true`
 - `batch_size`: `104857600`
+- `credentials_path`: _full path to the service account key file_
+- `dataset`: `resale`
+- `denormalized`: `true`
 - `flattening_enabled`: `true`
 - `flattening_max_depth`: `1`
+- `method`: `batch_job`
+- `project`: *your_gcp_project_id*
 
 You can refer to an example of the `meltano.yml` in the `solutions` branch of the lesson 2.6 repo [here](https://github.com/su-ntu-ctp/5m-data-2.6-data-pipelines-orchestration/blob/solutions/solutions/meltano-ingestion/meltano.yml).
 
@@ -253,21 +250,15 @@ We can now run the full ingestion (extract-load) pipeline from Supabase to BigQu
 meltano run tap-postgres target-bigquery
 ```
 
-It will take about 25 mins to complete due to the large amount of data. You will see the logs printed out in your console. Once the pipeline is completed, you can check the data in BigQuery.
+You will see the logs printed out in your console. Once the pipeline is completed, you can check the data in BigQuery.
 
 
 
 ### Create Dbt project
 
-Let's create a Dbt project to transform the data in BigQuery.
+Let's create a Dbt project to transform the data in BigQuery. Before that please exit the `meltano-ingestion` folder by using the command `cd ..`.
 
-First, activate the conda environment from unit 2.5.
-
-```bash
-conda activate dwh
-```
-
-Then create a new dbt project.
+To create a new dbt project.
 
 ```bash
 dbt init resale_flat
@@ -284,6 +275,14 @@ We can start to create the source and models in the dbt project.
 > 3. Create a `prices_by_town_type_model.sql` model (materialized table) which selects the `town`, `flat_type` and `flat_model` columns from `prices`, group by them and calculate the average of `floor_area_sqm`, `resale_price` and `price_per_sqm`. Finally, sort by `town`, `flat_type` and `flat_model`.
 
 ### Run Dbt
+
+Check dbt connection first
+
+```bash
+dbt debug
+```
+
+Optional: you can run `dbt clean` to clear any logs or run file in the dbt folders.
 
 Run the dbt project to transform the data.
 
@@ -303,11 +302,13 @@ You should see 2 new tables in the `resale_flat` dataset.
 
 ### Create a Dagster Project
 
-First, reactivate the conda environment.
+Make sure you are still in `elt` environment, if not run the command below:
 
 ```bash
 conda activate elt
 ```
+
+Also make sure you exit the dbt folder `resale_flat` using command `cd ..`
 
 To create a new Dagster project:
 
@@ -315,13 +316,7 @@ To create a new Dagster project:
 dagster project scaffold --name dagster-orchestration
 ```
 
-After running this command, you should see a new directory called `dagster-orchestration` in your current directory. This directory contains the files that make up your Dagster project. Next, add the following dependencies to the `setup.py` file:
-
-- `requests` will be used to download data from the internet
-- `pandas` is a popular library for working with tabular data
-- `matplotlib` makes it easy to make charts in Python
-- `dagster_duckdb` manages how Dagster can read and write to DuckDB
-- `dagster_duckdb_pandas` allows loading data from DuckDB into Pandas DataFrames
+After running this command, you should see a new directory called `dagster-orchestration` in your current directory. This directory contains the files that make up your Dagster project. 
 
 Then install the Python dependencies by:
 
