@@ -302,10 +302,10 @@ You should see 2 new tables in the `resale_flat` dataset.
 
 ### Create a Dagster Project
 
-Make sure you are still in `elt` environment, if not run the command below:
+We need to use `dagster_environment.yml` file in the [environment folder](https://github.com/su-ntu-ctp/5m-data-2.1-intro-big-data-eng/tree/main/environments) in the repository of module 2.1. Create the environment and run the following command to activate the environment:
 
 ```bash
-conda activate elt
+conda activate dagster
 ```
 
 Also make sure you exit the dbt folder `resale_flat` using command `cd ..`
