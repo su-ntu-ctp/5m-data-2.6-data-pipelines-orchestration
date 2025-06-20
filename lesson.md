@@ -4,7 +4,7 @@
 
 ### Preparation
 
-Create the conda environment based on the `elt_environment.yml` file at the [Environment Folder](https://github.com/su-ntu-ctp/5m-data-2.1-intro-big-data-eng/tree/main/environments). We will also be using google cloud (for which the account was created in the previous unit) in this lesson.
+Create the conda environment based on the `elt_environment.yml` file in the [environment folder](https://github.com/su-ntu-ctp/5m-data-2.1-intro-big-data-eng/tree/main/environments). We will also be using google cloud (for which the account was created in the previous unit) in this lesson.
 
 ### Lesson Overview
 
