@@ -1,0 +1,11 @@
+dagster
+dagster-cloud
+requests
+pandas
+matplotlib
+dagster_duckdb
+dagster_duckdb_pandas
+
+[dev]
+dagster-webserver
+pytest

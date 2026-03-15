@@ -1,0 +1,43 @@
+version: 1
+default_environment: dev
+project_id: d02ab6ea-e1a3-4ceb-8ff8-5e4330847cbe
+environments:
+- name: dev
+- name: staging
+- name: prod
+plugins:
+  extractors:
+  - name: tap-github
+    variant: meltanolabs
+    pip_url: git+https://github.com/MeltanoLabs/tap-github.git
+    config:
+      repositories:
+      - pandas-dev/pandas
+    select:
+    - releases.tag_name
+    - releases.body
+    - releases.published_at
+  - name: tap-postgres
+    variant: meltanolabs
+    pip_url: git+https://github.com/MeltanoLabs/tap-postgres.git
+    config:
+      database: postgres
+      host: db.kjytsuhjlrmjodturbcb.supabase.co
+      user: su_user
+      filter_schemas:
+      - public
+  loaders:
+  - name: target-jsonl
+    variant: andyh1203
+    pip_url: target-jsonl
+  - name: target-bigquery
+    variant: z3z1ma
+    pip_url: git+https://github.com/z3z1ma/target-bigquery.git
+    config:
+      dataset: ingestion
+      project: meltano-learn
+      credentials_path: /Users/zanelim/Downloads/personal/secret/meltano-learn-03934027c1d8.json
+      method: batch_job
+      denormalized: true
+      flattening_enabled: true
+      flattening_max_depth: 1
