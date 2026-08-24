@@ -17,6 +17,4 @@ def pipeline_one_asset_b(context: AssetExecutionContext,
 
 @asset
 def pipeline_one_asset_c(context: AssetExecutionContext, pipeline_one_asset_b):
-    result = sum(pipeline_one_asset_b)
-    context.log.info(f"Pipeline one result: {result}")
-    return result
+    context.log.info(f"Pipeline one result: {pipeline_one_asset_b}")

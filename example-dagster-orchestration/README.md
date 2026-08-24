@@ -8,6 +8,7 @@ First, install your Dagster code location as a Python package. By using the --ed
 
 ```bash
 pip install -e ".[dev]"
+pip install -r requirements.txt
 ```
 
 Then, start the Dagster UI web server:

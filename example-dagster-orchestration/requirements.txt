@@ -1,0 +1,4 @@
+pandas
+dagster-duckdb
+dagster_duckdb_pandas
+python-dotenv
