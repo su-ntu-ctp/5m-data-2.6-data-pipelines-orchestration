@@ -16,5 +16,5 @@ def pipeline_one_asset_b(context: AssetExecutionContext,
     return pipeline_one_asset_a
 
 @asset
-def pipeline_one_asset_c(context: AssetExecutionContext, pipeline_one_asset_b):
+def pipeline_one_asset_c(context: AssetExecutionContext, pipeline_one_asset_b)->None:
     context.log.info(f"Pipeline one result: {pipeline_one_asset_b}")

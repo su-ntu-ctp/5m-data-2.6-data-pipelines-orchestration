@@ -15,12 +15,14 @@ duck_assets = load_assets_from_modules([duck])
 pipelineone_assets = load_assets_from_modules([pipelineone])
 
 # define the job that will materialize the assets
-pandas_job = define_asset_job("pandas_job", selection=AssetSelection.all())
+pandas_job = define_asset_job("pandas_job", selection=["pandas_releases","summary_statistics"])
+
 
 pipelineone_job = define_asset_job(
-    name="pipeline_one_job", 
-    selection=AssetSelection.all()
+    name="pipeline_one_job",
+    selection=["pipeline_one_asset_a","pipeline_one_asset_b","pipeline_one_asset_c"]
 )
+
 
 # a ScheduleDefinition the job it should run and a cron schedule of how frequently to run it
 pandas_schedule = ScheduleDefinition(
