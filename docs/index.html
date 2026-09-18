@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Testing Guide - Great Expectations & DBT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
+            <p class="programme-label">NTU (SCTP) Advanced Professional Certificate &middot; Data Pipelines & Orchestration</p>
             <h1>🔍 Data Testing Guide</h1>
             <p class="subtitle">Master data quality with Great Expectations & DBT Testing</p>
         </header>
@@ -26,9 +29,45 @@
             <section class="card">
                 <h2>📚 What is Data Testing?</h2>
                 <p>Data testing is an important part of data quality management. It verifies that data satisfies expected properties.</p>
+                <div class="eli5-box">
+                    <span class="eli5-label">In plain English</span>
+                    <p>Imagine a food inspector checking a delivery of ingredients before a restaurant uses them: are the eggs actually eggs, are there the right number of boxes, is nothing expired? Data testing does the same job for data — it checks that the numbers, dates, and categories in your dataset look the way they're supposed to <strong>before</strong> you build reports or models on top of them.</p>
+                    <p>If bad data gets in and nobody checks it, every dashboard and analysis built on it will quietly be wrong too. Testing catches that early.</p>
+                </div>
                 <div class="info-box">
                     <p><strong>Also known as:</strong> Data validation, data quality assurance, data quality control, data quality assessment</p>
                 </div>
+            </section>
+
+            <section class="card">
+                <h2>🔑 Key Terms for Beginners</h2>
+                <p>A handful of words come up constantly in this guide. Skim these once and the rest of the page will make a lot more sense.</p>
+                <dl class="glossary-grid">
+                    <div class="glossary-item">
+                        <dt>Pipeline</dt>
+                        <dd>The series of steps data moves through: extracted from a source, transformed, then loaded somewhere useful.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Schema</dt>
+                        <dd>The "shape" of a dataset — which columns exist, and what type of value (text, number, date) each one should hold.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Data Warehouse</dt>
+                        <dd>A database built for analysis rather than day-to-day apps — e.g. BigQuery, Snowflake, Redshift.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Validation</dt>
+                        <dd>The act of checking that data meets a rule, e.g. "this column should never be empty."</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Model (in DBT)</dt>
+                        <dd>A saved SQL query that transforms raw data into a clean, reusable table or view.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Orchestration</dt>
+                        <dd>Automatically running your pipeline steps in the right order, on a schedule, without a human clicking "run" each time.</dd>
+                    </div>
+                </dl>
             </section>
 
             <section class="card">
@@ -75,6 +114,10 @@
         <div class="tab-content" id="gx">
             <section class="card">
                 <h2>🚀 Installation & Setup</h2>
+                <div class="eli5-box">
+                    <span class="eli5-label">In plain English</span>
+                    <p>Great Expectations is a Python library that lets you write down rules about your data ("this column must be numbers between 0 and 100") and then automatically checks a real dataset against those rules. Below, you'll set up the tool step by step — copy each command into your terminal or notebook in order.</p>
+                </div>
                 <div class="collapsible-section">
                     <button class="collapsible-btn">
                         <span>Step 1: Environment Setup</span>
@@ -113,7 +156,11 @@ from great_expectations import expectations as gxe</code></pre>
 
             <section class="card">
                 <h2>📋 Core Concepts</h2>
-                
+                <div class="eli5-box">
+                    <span class="eli5-label">In plain English</span>
+                    <p>Think of these four concepts as a filing system: the <strong>Data Context</strong> is the filing cabinet itself, a <strong>Data Source</strong> is which drawer your files are in (a folder, a cloud bucket, a database), a <strong>Data Asset</strong> is a labelled folder of related files, and a <strong>Batch</strong> is the actual stack of paper you pull out to inspect right now.</p>
+                </div>
+
                 <div class="concept-card">
                     <h3>1. Data Context</h3>
                     <p>Defines storage location for metadata, configurations, and validation results</p>
@@ -265,6 +312,10 @@ validation_results = batch.validate(expectation)</code></pre>
             <section class="card">
                 <h2>🚀 DBT Testing Setup</h2>
                 <p>DBT provides built-in tests and can be extended with powerful testing packages</p>
+                <div class="eli5-box">
+                    <span class="eli5-label">In plain English</span>
+                    <p>If Great Expectations checks data on the way in, DBT tests check data on the way <strong>out</strong> — after you've transformed raw data into clean tables. A DBT test is really just a small SQL question, like "does any row break this rule?" — if the answer is "yes, some rows do," the test fails and tells you exactly which model to look at.</p>
+                </div>
             </section>
 
             <section class="card">
@@ -443,6 +494,10 @@ validation_results = batch.validate(expectation)</code></pre>
                 <h2>🚀 Why Orchestration?</h2>
                 <div class="info-box">
                     <p>Orchestration allows you to automate your data pipelines, schedule testing workflows, manage dependencies, and monitor data quality continuously in production environments.</p>
+                </div>
+                <div class="eli5-box">
+                    <span class="eli5-label">In plain English</span>
+                    <p>So far you've run commands by hand. Orchestration is what happens when a tool like Dagster clicks "run" for you — every night at 2am, in the right order (ingest, then validate, then transform, then test), and it tells you the moment something breaks instead of you finding out days later.</p>
                 </div>
             </section>
 
@@ -630,6 +685,10 @@ defs = Definitions(
             <section class="card">
                 <h2>🔄 Complete Data Testing Workflow</h2>
                 <p>Integrate both Great Expectations and DBT into your data pipeline</p>
+                <div class="eli5-box">
+                    <span class="eli5-label">In plain English</span>
+                    <p>Neither tool replaces the other — they guard different stages of the same journey. Great Expectations stands at the door checking data as it arrives; DBT testing stands at the exit checking data after it's been reshaped. Using both means bad data gets caught wherever it shows up.</p>
+                </div>
             </section>
 
             <section class="card">
