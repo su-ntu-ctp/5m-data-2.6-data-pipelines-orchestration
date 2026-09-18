@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Testing Guide - Great Expectations & DBT</title>
+    <title>Data Pipelines & Orchestration Guide - Meltano, dbt & Dagster</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
@@ -12,463 +12,606 @@
     <div class="container">
         <header>
             <p class="programme-label">NTU (SCTP) Advanced Professional Certificate &middot; Data Pipelines & Orchestration</p>
-            <h1>🔍 Data Testing Guide</h1>
-            <p class="subtitle">Master data quality with Great Expectations & DBT Testing</p>
+            <h1>🔄 Data Pipelines & Orchestration Guide</h1>
+            <p class="subtitle">Meltano ELT &rarr; dbt Transform &rarr; Dagster Orchestration</p>
         </header>
 
         <nav class="tab-nav">
             <button class="tab-btn active" data-tab="overview">Overview</button>
-            <button class="tab-btn" data-tab="gx">Great Expectations</button>
-            <button class="tab-btn" data-tab="dbt">DBT Testing</button>
+            <button class="tab-btn" data-tab="meltano">Meltano (Extract & Load)</button>
+            <button class="tab-btn" data-tab="dbt">dbt (Transform)</button>
+            <button class="tab-btn" data-tab="dagster">Dagster (Orchestrate)</button>
             <button class="tab-btn" data-tab="workflow">Complete Workflow</button>
-            <button class="tab-btn" data-tab="orchestration">Orchestration</button>
         </nav>
 
         <!-- Overview Tab -->
         <div class="tab-content active" id="overview">
             <section class="card">
-                <h2>📚 What is Data Testing?</h2>
-                <p>Data testing is an important part of data quality management. It verifies that data satisfies expected properties.</p>
+                <h2>📚 From ETL to ELT</h2>
+                <p>Due to the rise of cloud data warehouses, data pipelines have shifted from Extract, Transform, Load (ETL) to Extract, Load, Transform (ELT). Instead of transforming data before it lands in the warehouse, you load the raw data first and transform it afterwards using the warehouse's own compute power.</p>
                 <div class="eli5-box">
                     <span class="eli5-label">In plain English</span>
-                    <p>Imagine a food inspector checking a delivery of ingredients before a restaurant uses them: are the eggs actually eggs, are there the right number of boxes, is nothing expired? Data testing does the same job for data — it checks that the numbers, dates, and categories in your dataset look the way they're supposed to <strong>before</strong> you build reports or models on top of them.</p>
-                    <p>If bad data gets in and nobody checks it, every dashboard and analysis built on it will quietly be wrong too. Testing catches that early.</p>
+                    <p>ETL is like cooking a meal before you put it in the fridge. ELT is like putting the raw groceries straight in the fridge, then cooking straight from there whenever you need a dish. Modern cloud warehouses (BigQuery, Snowflake) are powerful enough to do the "cooking" (transformation) themselves, so we load raw data first and transform it later — that's what makes ELT the preferred pattern today.</p>
                 </div>
                 <div class="info-box">
-                    <p><strong>Also known as:</strong> Data validation, data quality assurance, data quality control, data quality assessment</p>
+                    <p><strong>In this lesson:</strong> <code>Meltano</code> handles ingestion (Extract + Load), <code>dbt</code> handles Transform, and <code>Dagster</code> orchestrates the whole thing on a schedule.</p>
                 </div>
             </section>
 
             <section class="card">
-                <h2>🔑 Key Terms for Beginners</h2>
-                <p>A handful of words come up constantly in this guide. Skim these once and the rest of the page will make a lot more sense.</p>
-                <dl class="glossary-grid">
-                    <div class="glossary-item">
-                        <dt>Pipeline</dt>
-                        <dd>The series of steps data moves through: extracted from a source, transformed, then loaded somewhere useful.</dd>
+                <h2>🗺️ How This Lesson Is Structured</h2>
+                <p>This lesson has three parts, each building on the previous:</p>
+                <div class="pipeline-flow">
+                    <div class="pipeline-stage">
+                        <div class="stage-header">Part 1</div>
+                        <div class="stage-content">
+                            <p><strong>Ingest GitHub data &rarr; BigQuery</strong></p>
+                            <ul>
+                                <li>Meltano</li>
+                                <li>tap-github</li>
+                                <li>target-bigquery</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="glossary-item">
-                        <dt>Schema</dt>
-                        <dd>The "shape" of a dataset — which columns exist, and what type of value (text, number, date) each one should hold.</dd>
+                    <div class="pipeline-arrow">→</div>
+                    <div class="pipeline-stage">
+                        <div class="stage-header">Part 2</div>
+                        <div class="stage-content">
+                            <p><strong>Ingest Postgres data &rarr; BigQuery, then transform</strong></p>
+                            <ul>
+                                <li>tap-postgres</li>
+                                <li>target-bigquery</li>
+                                <li>dbt</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="glossary-item">
-                        <dt>Data Warehouse</dt>
-                        <dd>A database built for analysis rather than day-to-day apps — e.g. BigQuery, Snowflake, Redshift.</dd>
+                    <div class="pipeline-arrow">→</div>
+                    <div class="pipeline-stage">
+                        <div class="stage-header">Part 3 (Optional)</div>
+                        <div class="stage-content">
+                            <p><strong>Orchestrate & schedule</strong></p>
+                            <ul>
+                                <li>Dagster</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="glossary-item">
-                        <dt>Validation</dt>
-                        <dd>The act of checking that data meets a rule, e.g. "this column should never be empty."</dd>
-                    </div>
-                    <div class="glossary-item">
-                        <dt>Model (in DBT)</dt>
-                        <dd>A saved SQL query that transforms raw data into a clean, reusable table or view.</dd>
-                    </div>
-                    <div class="glossary-item">
-                        <dt>Orchestration</dt>
-                        <dd>Automatically running your pipeline steps in the right order, on a schedule, without a human clicking "run" each time.</dd>
-                    </div>
-                </dl>
+                </div>
+                <div class="hint-box">💡 Full picture: <code>GitHub API / Postgres (Supabase)</code> &rarr; <code>Meltano (tap &rarr; target)</code> &rarr; <code>BigQuery</code> &rarr; <code>dbt models</code> &rarr; <code>Dagster</code></div>
             </section>
 
             <section class="card">
                 <h2>🛠️ Technologies Covered</h2>
                 <div class="tech-grid">
-                    <!-- Great Expectations -->
                     <div class="tech-feature">
                         <div class="tech-header">
-                            <h3>Great Expectations</h3>
-                            <p>Python library for data testing and validation</p>
+                            <h3>Meltano</h3>
+                            <p>Extracts data from a source and loads it into a warehouse</p>
                         </div>
                         <div class="feature-buttons">
-                            <button class="feature-btn" data-modal="file-support">📁 File Support</button>
-                            <button class="feature-btn" data-modal="database-support">🗄️ Database Support</button>
-                            <button class="feature-btn" data-modal="data-lakes">🏞️ Data Lakes</button>
+                            <button class="feature-btn" data-modal="tap-extractors">📥 Extractors (Taps)</button>
+                            <button class="feature-btn" data-modal="target-loaders">📤 Loaders (Targets)</button>
                         </div>
                     </div>
-                    
-                    <!-- DBT Testing -->
+
                     <div class="tech-feature">
                         <div class="tech-header">
-                            <h3>DBT Testing</h3>
-                            <p>Built-in testing framework with extensible packages</p>
+                            <h3>dbt</h3>
+                            <p>Transforms raw warehouse data into analytics-ready models</p>
                         </div>
                         <div class="feature-buttons">
-                            <button class="feature-btn" data-modal="builtin-tests">✅ Built-in Tests</button>
-                            <button class="feature-btn" data-modal="dbt-utils">🔧 dbt_utils</button>
-                            <button class="feature-btn" data-modal="dbt-expectations">🎯 dbt-expectations</button>
+                            <button class="feature-btn" data-modal="dbt-sources-models">📋 Sources & Models</button>
+                            <button class="feature-btn" data-modal="dbt-materialization">⚙️ Materialization</button>
+                        </div>
+                    </div>
+
+                    <div class="tech-feature">
+                        <div class="tech-header">
+                            <h3>Dagster</h3>
+                            <p>Schedules and orchestrates the whole pipeline</p>
+                        </div>
+                        <div class="feature-buttons">
+                            <button class="feature-btn" data-modal="dagster-assets">🧩 Software-Defined Assets</button>
+                            <button class="feature-btn" data-modal="dagster-jobs-schedules">⏰ Jobs & Schedules</button>
                         </div>
                     </div>
                 </div>
+            </section>
+
+            <section class="card">
+                <h2>🔑 Key Terms for Beginners</h2>
+                <p>These words come up constantly in this guide. Skim these once and the rest of the page will make a lot more sense.</p>
+                <dl class="glossary-grid">
+                    <div class="glossary-item">
+                        <dt>Extractor (Tap)</dt>
+                        <dd>A Meltano plugin that reads data from a source — an API, a database — and outputs it in a standard format.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Loader (Target)</dt>
+                        <dd>A Meltano plugin that receives the data stream from a tap and writes it to a destination, like BigQuery.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Data Warehouse</dt>
+                        <dd>A database built for analysis rather than day-to-day apps — in this lesson, BigQuery.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>dbt Model</dt>
+                        <dd>A saved SQL <code>SELECT</code> statement that dbt compiles and runs in the warehouse to produce a clean table or view.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Software-Defined Asset</dt>
+                        <dd>Dagster's unit of a pipeline — a piece of data (a table, a DataFrame, a file) and the function that produces it.</dd>
+                    </div>
+                    <div class="glossary-item">
+                        <dt>Orchestration</dt>
+                        <dd>Automatically running pipeline steps in the right order, on a schedule, without a human clicking "run" each time.</dd>
+                    </div>
+                </dl>
             </section>
 
             <section class="card hint-card">
                 <div class="hint-icon">💡</div>
                 <div>
                     <h3>Getting Started</h3>
-                    <p>Click on the tabs above to explore Great Expectations or DBT Testing in detail!</p>
+                    <p>Work through the tabs above in order: Meltano ingests data, dbt transforms it, Dagster automates both.</p>
                 </div>
             </section>
         </div>
 
-        <!-- Great Expectations Tab -->
-        <div class="tab-content" id="gx">
+        <!-- Meltano Tab -->
+        <div class="tab-content" id="meltano">
             <section class="card">
-                <h2>🚀 Installation & Setup</h2>
+                <h2>🚀 Create a Meltano Project</h2>
                 <div class="eli5-box">
                     <span class="eli5-label">In plain English</span>
-                    <p>Great Expectations is a Python library that lets you write down rules about your data ("this column must be numbers between 0 and 100") and then automatically checks a real dataset against those rules. Below, you'll set up the tool step by step — copy each command into your terminal or notebook in order.</p>
+                    <p>In unit 2.4 you wrote Python scripts to call the GitHub API by hand. That works once, but production pipelines need to run on a schedule, retry on failure, and scale to many sources without rewriting code each time. Meltano does all of this through configuration instead of custom code.</p>
                 </div>
                 <div class="collapsible-section">
                     <button class="collapsible-btn">
-                        <span>Step 1: Environment Setup</span>
+                        <span>Step 1: Initialise the project</span>
                         <span class="arrow">▼</span>
                     </button>
                     <div class="collapsible-content">
-                        <pre><code class="language-bash">conda activate elt</code></pre>
-                        <p class="code-explanation">Activate your conda environment for data engineering tasks</p>
+                        <pre><code class="language-bash">meltano init meltano-ingestion
+cd meltano-ingestion</code></pre>
+                        <p class="code-explanation">Creates a new Meltano project folder for the GitHub &rarr; BigQuery pipeline.</p>
+                    </div>
+                </div>
+                <div class="collapsible-section">
+                    <button class="collapsible-btn">
+                        <span>Step 2: Set the Python version</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="collapsible-content">
+                        <pre><code class="language-bash">meltano config set meltano python python3.11</code></pre>
+                        <p class="code-explanation">Meltano installs each tap and target into its own virtual environment. This ensures they all use Python 3.11, matching your conda environment.</p>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <p>⚠️ <strong>Each data source gets its own Meltano project.</strong> A second project for Postgres (<code>meltano-resale</code>) must be created in the repo root — never inside <code>meltano-ingestion</code>.</p>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>📥 Extractors (Taps)</h2>
+                <p>A <em>tap</em> is a plugin that reads data from a source and outputs it in a standardised format, so you don't have to write API clients from scratch.</p>
+
+                <div class="collapsible-section">
+                    <button class="collapsible-btn">
+                        <span>tap-github &mdash; pull pandas releases from the GitHub API</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="collapsible-content">
+                        <pre><code class="language-bash">meltano add tap-github
+meltano config set tap-github --interactive</code></pre>
+                        <p class="code-explanation">Set <code>auth_token</code> (your GitHub personal access token) and <code>repositories</code>: <code>["pandas-dev/pandas"]</code></p>
+                        <pre><code class="language-bash">meltano config test tap-github
+meltano select tap-github --list --all</code></pre>
+                        <p class="code-explanation">Select only the fields you need &mdash; extracting everything wastes transfer time, storage, and adds noise.</p>
+                        <pre><code class="language-bash">meltano select tap-github releases tag_name
+meltano select tap-github releases body
+meltano select tap-github releases published_at</code></pre>
                     </div>
                 </div>
 
                 <div class="collapsible-section">
                     <button class="collapsible-btn">
-                        <span>Step 2: Install Great Expectations</span>
+                        <span>tap-postgres &mdash; pull HDB resale data from Supabase</span>
                         <span class="arrow">▼</span>
                     </button>
                     <div class="collapsible-content">
-                        <pre><code class="language-bash">pip install great_expectations</code></pre>
-                        <p class="code-explanation">Install the Great Expectations library</p>
-                    </div>
-                </div>
-
-                <div class="collapsible-section">
-                    <button class="collapsible-btn">
-                        <span>Step 3: Import Libraries</span>
-                        <span class="arrow">▼</span>
-                    </button>
-                    <div class="collapsible-content">
-                        <pre><code class="language-python">import pandas as pd
-import great_expectations as gx
-from great_expectations import expectations as gxe</code></pre>
-                        <p class="code-explanation">Import necessary libraries for data testing</p>
+                        <pre><code class="language-bash">meltano init meltano-resale
+cd meltano-resale
+meltano config set meltano python python3.11
+meltano add tap-postgres
+meltano config set tap-postgres --interactive</code></pre>
+                        <p class="code-explanation">Configure <code>database</code>: <code>postgres</code>, <code>filter_schemas</code>: <code>['public']</code>, <code>host</code>, <code>password</code>, <code>port</code>: <code>5432</code>, <code>user</code>.</p>
+                        <div class="hint-box">💡 <code>filter_schemas: ['public']</code> stops the tap from introspecting system schemas it doesn't need.</div>
+                        <pre><code class="language-bash">meltano config test tap-postgres
+meltano select tap-postgres "public-resale_flat_prices_from_jan_2017" "*"</code></pre>
+                        <p class="code-explanation">The first argument selects the table (stream), the second (<code>"*"</code>) selects all its columns &mdash; both are required.</p>
                     </div>
                 </div>
             </section>
 
             <section class="card">
-                <h2>📋 Core Concepts</h2>
-                <div class="eli5-box">
-                    <span class="eli5-label">In plain English</span>
-                    <p>Think of these four concepts as a filing system: the <strong>Data Context</strong> is the filing cabinet itself, a <strong>Data Source</strong> is which drawer your files are in (a folder, a cloud bucket, a database), a <strong>Data Asset</strong> is a labelled folder of related files, and a <strong>Batch</strong> is the actual stack of paper you pull out to inspect right now.</p>
-                </div>
-
-                <div class="concept-card">
-                    <h3>1. Data Context</h3>
-                    <p>Defines storage location for metadata, configurations, and validation results</p>
-                    <div class="hint-box">💡 All GX scripts start with creating a Data Context</div>
-                    <pre><code class="language-python">context = gx.get_context()</code></pre>
-                </div>
-
-                <div class="concept-card">
-                    <h3>2. Data Sources</h3>
-                    <p>Tell GX where your data is located and how to connect to it</p>
-                    <div class="supported-sources">
-                        <span class="source-tag">Amazon S3</span>
-                        <span class="source-tag">Azure Blob</span>
-                        <span class="source-tag">Google Cloud</span>
-                        <span class="source-tag">Local Files</span>
-                    </div>
-                    <pre><code class="language-python">source_folder = "data/"
-data_source_name = "resale_flat"
-
-data_source = context.data_sources.add_pandas_filesystem(
-    name=data_source_name, 
-    base_directory=source_folder
-)</code></pre>
-                </div>
-
-                <div class="concept-card">
-                    <h3>3. Data Assets</h3>
-                    <p>A collection of related records within a Data Source</p>
-                    <pre><code class="language-python">asset_name = "resale_csv_files"
-file_csv_asset = data_source.add_csv_asset(name=asset_name)</code></pre>
-                </div>
-
-                <div class="concept-card">
-                    <h3>4. Batch Definition</h3>
-                    <p>Request all records or a subset from a Data Asset</p>
-                    <pre><code class="language-python">batch_definition = file_data_asset.add_batch_definition_path(
-    name="resale_flat_201701_202306.csv",
-    path="resale_flat_201701_202306.csv"
-)
-
-batch = batch_definition.get_batch()</code></pre>
-                </div>
+                <h2>🧪 Test Locally with target-jsonl</h2>
+                <div class="hint-box">💡 Before sending data to BigQuery, dump it to a local JSON file first to confirm the extractor works.</div>
+                <pre><code class="language-bash">meltano add target-jsonl
+meltano run tap-github target-jsonl</code></pre>
+                <p class="code-explanation">The extracted data lands in the <code>output/</code> directory. Open it and check for <code>tag_name</code>, <code>body</code>, and <code>published_at</code>.</p>
             </section>
 
             <section class="card">
-                <h2>✅ Creating Expectations</h2>
-                
-                <div class="expectations-demo">
-                    <h3>Single Expectation</h3>
-                    <pre><code class="language-python">preset_expectation = gx.expectations.ExpectColumnMaxToBeBetween(
-    column="lease_commence_date",
-    min_value=1,
-    max_value=2020
-)
-
-validation_results = batch.validate(preset_expectation)</code></pre>
+                <h2>📤 Loaders (Targets): target-bigquery</h2>
+                <p>A <em>target</em> receives the standardised data stream from a tap and writes it to a destination &mdash; handling table creation, schema inference, and batching automatically.</p>
+                <pre><code class="language-bash">meltano add target-bigquery
+meltano config set target-bigquery --interactive</code></pre>
+                <div class="concept-card">
+                    <h3>Key options</h3>
+                    <p><code>credentials_path</code> (service account JSON key), <code>dataset</code> (<code>ingestion</code> or <code>resale</code>), <code>denormalized: true</code>, <code>flattening_enabled: true</code>, <code>flattening_max_depth: 1</code>, <code>method: batch_job</code>, <code>project</code>.</p>
+                    <div class="hint-box">💡 <code>flattening_enabled</code> turns nested JSON fields into separate columns; <code>denormalized</code> expands repeated fields into rows.</div>
+                    <p>For the resale dataset (~180,000+ rows), also set <code>batch_size: 104857600</code> (100MB) for fewer, faster round-trips.</p>
                 </div>
-
-                <div class="expectations-demo">
-                    <h3>Expectation Suite</h3>
-                    <div class="hint-box">💡 Group multiple expectations together for comprehensive validation</div>
-                    <pre><code class="language-python">suite_name = "sctp_expectation_suite"
-suite = gx.ExpectationSuite(name=suite_name)
-suite = context.suites.add(suite)
-suite.add_expectation(preset_expectation)</code></pre>
+                <div class="info-box">
+                    <p>⚠️ <strong>Known issue (setuptools &ge; 81.0.0):</strong> removed <code>pkg_resources</code>, which the target-bigquery plugin needs. Fix: in <code>meltano.yml</code>, under the <code>target-bigquery</code> plugin's <code>pip_url</code>, add <code>setuptools&lt;80</code> after the git URL.</p>
                 </div>
-
-                <div class="expectations-demo">
-                    <h3>Validation Definition</h3>
-                    <pre><code class="language-python">definition_name = "sctp_validation_definition"
-validation_definition = gx.ValidationDefinition(
-    data=batch_definition,
-    suite=suite,
-    name=definition_name
-)
-
-validation_results = validation_definition.run()</code></pre>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>🎯 Working with DataFrames</h2>
-                <div class="hint-box">💡 Directly map DataFrames for more flexible testing</div>
-                
-                <div class="workflow-steps">
-                    <div class="workflow-step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h4>Load Data</h4>
-                            <pre><code class="language-python">resale_data = pd.read_csv("data/resale_flat_202307.csv")</code></pre>
-                        </div>
-                    </div>
-
-                    <div class="workflow-step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h4>Create DataFrame Data Source</h4>
-                            <pre><code class="language-python">data_source = context.data_sources.add_pandas(
-    name="resale_dataframe"
-)</code></pre>
-                        </div>
-                    </div>
-
-                    <div class="workflow-step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h4>Add DataFrame Asset</h4>
-                            <pre><code class="language-python">data_asset = data_source.add_dataframe_asset(
-    name="resale_202307_asset"
-)</code></pre>
-                        </div>
-                    </div>
-
-                    <div class="workflow-step">
-                        <div class="step-number">4</div>
-                        <div class="step-content">
-                            <h4>Create Batch & Validate</h4>
-                            <pre><code class="language-python">batch_definition = data_asset.add_batch_definition_whole_dataframe(
-    "resale_flat_202307_dataframe"
-)
-
-batch = batch_definition.get_batch(
-    batch_parameters={"dataframe": resale_data}
-)
-
-expectation = gx.expectations.ExpectColumnToExist(
-    column="month",
-    column_index=0
-)
-
-validation_results = batch.validate(expectation)</code></pre>
-                        </div>
-                    </div>
-                </div>
+                <pre><code class="language-bash">meltano run tap-github target-bigquery
+meltano run tap-postgres target-bigquery</code></pre>
+                <p class="code-explanation">Check BigQuery afterwards &mdash; you should see a <code>releases</code> table (from GitHub) and a <code>public_resale_flat_prices_from_jan_2017</code> table (from Postgres). Note: numeric-looking Postgres columns land as <code>STRING</code> &mdash; that's expected, and gets fixed in dbt.</p>
             </section>
 
             <section class="card resource-card">
                 <h2>📖 Additional Resources</h2>
                 <ul class="resource-list">
-                    <li><a href="https://docs.greatexpectations.io/docs/core/introduction/gx_overview" target="_blank">GX Overview Documentation</a></li>
-                    <li><a href="https://greatexpectations.io/expectations/" target="_blank">Expectations Gallery</a></li>
-                    <li><a href="https://docs.greatexpectations.io/docs/core/connect_to_data/filesystem_data/" target="_blank">Connecting to Filesystem Data</a></li>
+                    <li><a href="https://docs.meltano.com/" target="_blank">Meltano Documentation</a></li>
+                    <li><a href="https://hub.meltano.com/" target="_blank">Meltano Hub (extractors & loaders)</a></li>
                 </ul>
             </section>
         </div>
 
-        <!-- DBT Testing Tab -->
+        <!-- dbt Tab -->
         <div class="tab-content" id="dbt">
             <section class="card">
-                <h2>🚀 DBT Testing Setup</h2>
-                <p>DBT provides built-in tests and can be extended with powerful testing packages</p>
+                <h2>🚀 Create a dbt Project</h2>
                 <div class="eli5-box">
                     <span class="eli5-label">In plain English</span>
-                    <p>If Great Expectations checks data on the way in, DBT tests check data on the way <strong>out</strong> — after you've transformed raw data into clean tables. A DBT test is really just a small SQL question, like "does any row break this rule?" — if the answer is "yes, some rows do," the test fails and tells you exactly which model to look at.</p>
+                    <p>Meltano's job is to get data into the warehouse as faithfully as possible &mdash; it doesn't clean it. The raw table still has string-typed numbers exactly as they came from Postgres. dbt is where you apply business logic: casting types, calculating derived columns, and building models that are actually ready for analysis.</p>
                 </div>
-            </section>
-
-            <section class="card">
-                <h2>📦 Installing dbt_utils</h2>
-                
+                <pre><code class="language-bash">cd ..
+dbt init resale_flat</code></pre>
+                <p class="code-explanation">Fill in: service account, path to the JSON key file, dataset <code>resale</code>, and your GCP project ID.</p>
+                <div class="info-box">
+                    <p>⚠️ <strong>Create the dbt project from the repo root</strong> &mdash; not inside <code>meltano-resale</code>.</p>
+                </div>
                 <div class="collapsible-section">
                     <button class="collapsible-btn">
-                        <span>Step 1: Create packages.yml</span>
+                        <span>Project-level profiles.yml</span>
                         <span class="arrow">▼</span>
                     </button>
                     <div class="collapsible-content">
-                        <pre><code class="language-yaml">packages:
-  - package: dbt-labs/dbt_utils
-    version: 1.3.0</code></pre>
-                        <p class="code-explanation">Create this file in your DBT project root directory</p>
-                    </div>
-                </div>
-
-                <div class="collapsible-section">
-                    <button class="collapsible-btn">
-                        <span>Step 2: Install Dependencies</span>
-                        <span class="arrow">▼</span>
-                    </button>
-                    <div class="collapsible-content">
-                        <pre><code class="language-bash">dbt deps</code></pre>
-                        <p class="code-explanation">This will download and install the dbt_utils package</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>✅ dbt_utils Tests</h2>
-                
-                <div class="test-example">
-                    <h3>accepted_range Test</h3>
-                    <p>Check if values are within an acceptable range</p>
-                    <pre><code class="language-yaml">- name: date
-  tests:
-    - dbt_utils.accepted_range:
-        min_value: "PARSE_DATE('%F', '2012-01-01')"
-        max_value: "CURRENT_DATE()"</code></pre>
-                    <div class="hint-box">💡 Great for validating date ranges or numeric boundaries</div>
-                </div>
-
-                <div class="test-example">
-                    <h3>expression_is_true Test</h3>
-                    <p>Validate complex business logic across multiple columns</p>
-                    <pre><code class="language-yaml">tests:
-  - dbt_utils.expression_is_true:
-      expression: "ROUND(sale_dollars, 1) = TRUNC(bottles_sold * state_bottle_retail, 1)"</code></pre>
-                    <div class="hint-box">💡 This is a model-level test - place it outside the columns section</div>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>📦 Installing dbt-expectations</h2>
-                
-                <div class="collapsible-section">
-                    <button class="collapsible-btn">
-                        <span>Update packages.yml</span>
-                        <span class="arrow">▼</span>
-                    </button>
-                    <div class="collapsible-content">
-                        <pre><code class="language-yaml">packages:
-  - package: dbt-labs/dbt_utils
-    version: 1.3.0
-  - package: metaplane/dbt_expectations
-    version: 0.10.9</code></pre>
-                        <p class="code-explanation">Add dbt-expectations to your packages file</p>
-                        <pre><code class="language-bash">dbt deps</code></pre>
+                        <pre><code class="language-yaml">resale_flat:
+  outputs:
+    dev:
+      dataset: resale
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      keyfile: /path/to/your-key-file.json
+      location: US
+      method: service-account
+      priority: interactive
+      project: your-gcp-project-id
+      threads: 1
+      type: bigquery
+  target: dev</code></pre>
+                        <p class="code-explanation">Keeping <code>profiles.yml</code> inside the project (instead of the global <code>~/.dbt/profiles.yml</code>) makes the project self-contained and portable.</p>
                     </div>
                 </div>
             </section>
 
             <section class="card">
-                <h2>✅ dbt-expectations Tests</h2>
-                
-                <div class="test-example">
-                    <h3>Column Type Validation</h3>
-                    <p>Ensure columns have the correct data types</p>
-                    <pre><code class="language-yaml">- name: invoice_and_item_number
-  tests:
-    - dbt_expectations.expect_column_values_to_be_of_type:
-        column_type: string
+                <h2>📋 Sources & Models</h2>
 
-- name: date
-  tests:
-    - dbt_expectations.expect_column_values_to_be_of_type:
-        column_type: date</code></pre>
-                    <div class="hint-box">💡 Add type tests for all critical columns to catch schema changes early</div>
+                <div class="concept-card">
+                    <h3>1. Source &mdash; where the raw data lives</h3>
+                    <p>A source tells dbt which dataset and table to read, so your SQL can reference it with <code>{{ source(...) }}</code>.</p>
+                    <pre><code class="language-yaml">version: 2
+
+sources:
+  - name: resale
+    schema: resale
+    tables:
+      - name: public_resale_flat_prices_from_jan_2017</code></pre>
+                </div>
+
+                <div class="concept-card">
+                    <h3>2. prices.sql &mdash; clean the raw table</h3>
+                    <p>Casts the string-typed numeric columns and adds a calculated <code>price_per_sqm</code> column.</p>
+                    <pre><code class="language-sql">{{ config(materialized='table') }}
+
+with source as (
+    select * from {{ source('resale', 'public_resale_flat_prices_from_jan_2017') }}
+)
+
+select
+    month,
+    town,
+    flat_type,
+    block,
+    street_name,
+    storey_range,
+    cast(floor_area_sqm as numeric) as floor_area_sqm,
+    flat_model,
+    lease_commence_date,
+    remaining_lease,
+    cast(resale_price as numeric) as resale_price,
+    cast(resale_price as numeric) / cast(floor_area_sqm as numeric) as price_per_sqm
+from source</code></pre>
+                </div>
+
+                <div class="concept-card">
+                    <h3>3. prices_by_town_type_model.sql &mdash; aggregate for analysis</h3>
+                    <p>Averages price metrics by town, flat type, and flat model &mdash; useful directly for dashboards.</p>
+                    <pre><code class="language-sql">{{ config(materialized='table') }}
+
+select
+    town,
+    flat_type,
+    flat_model,
+    avg(floor_area_sqm) as avg_floor_area_sqm,
+    avg(resale_price) as avg_resale_price,
+    avg(price_per_sqm) as avg_price_per_sqm
+from {{ ref('prices') }}
+group by town, flat_type, flat_model
+order by town, flat_type, flat_model</code></pre>
+                    <div class="hint-box">💡 <code>{{ ref('prices') }}</code> tells dbt this model depends on <code>prices</code> &mdash; dbt runs them in the correct order automatically.</div>
                 </div>
             </section>
 
             <section class="card">
-                <h2>🔄 Running DBT Tests</h2>
-                
+                <h2>⚙️ Materialization</h2>
+                <p>Before running, remove the generated <code>example</code> block from <code>dbt_project.yml</code> and set the default materialization:</p>
+                <pre><code class="language-yaml">models:
+  resale_flat:
+    +materialized: table</code></pre>
+                <div class="hint-box">💡 <code>materialized: table</code> means dbt builds a physical table each run (as opposed to a <code>view</code>, which re-runs the query every time it's read).</div>
+            </section>
+
+            <section class="card">
+                <h2>🔄 Running dbt</h2>
                 <div class="workflow-steps">
                     <div class="workflow-step">
                         <div class="step-number">1</div>
                         <div class="step-content">
-                            <h4>Debug Configuration</h4>
-                            <pre><code class="language-bash">dbt debug</code></pre>
-                            <p>Verify your connection and configuration</p>
+                            <h4>Check the connection</h4>
+                            <pre><code class="language-bash">cd resale_flat
+dbt debug</code></pre>
+                            <p>A "Profile should not be None" error usually means you're not inside the <code>resale_flat</code> folder.</p>
                         </div>
                     </div>
-
                     <div class="workflow-step">
                         <div class="step-number">2</div>
                         <div class="step-content">
-                            <h4>Create Snapshots</h4>
-                            <pre><code class="language-bash">dbt snapshot</code></pre>
-                            <p>Create snapshot tables for slowly changing dimensions</p>
-                        </div>
-                    </div>
-
-                    <div class="workflow-step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h4>Run Models</h4>
+                            <h4>Run the models</h4>
                             <pre><code class="language-bash">dbt run</code></pre>
-                            <p>Build your models in the data warehouse</p>
+                            <p>Builds <code>prices</code> and <code>prices_by_town_type_model</code> as new tables in the <code>resale</code> dataset.</p>
                         </div>
                     </div>
+                </div>
+                <div class="info-box">
+                    <p><strong>Verify in BigQuery:</strong> preview <code>prices</code> &mdash; <code>floor_area_sqm</code>/<code>resale_price</code> should now be numeric, with a <code>price_per_sqm</code> column. Preview <code>prices_by_town_type_model</code> &mdash; grouped and sorted by town, flat type, flat model.</p>
+                </div>
+            </section>
 
-                    <div class="workflow-step">
-                        <div class="step-number">4</div>
-                        <div class="step-content">
-                            <h4>Execute Tests</h4>
-                            <pre><code class="language-bash">dbt test</code></pre>
-                            <p>Run all tests defined in your schema files</p>
-                        </div>
+            <section class="card resource-card">
+                <h2>📖 Additional Resources</h2>
+                <ul class="resource-list">
+                    <li><a href="https://docs.getdbt.com/docs/introduction" target="_blank">dbt Documentation</a></li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Dagster Tab -->
+        <div class="tab-content" id="dagster">
+            <section class="card">
+                <h2>⚙️ Why Orchestration?</h2>
+                <div class="info-box">
+                    <p>You can run Meltano and dbt manually from the command line &mdash; but production pipelines need to run automatically, with scheduling, dependency management, monitoring, and alerting.</p>
+                </div>
+                <div class="eli5-box">
+                    <span class="eli5-label">In plain English</span>
+                    <p>Dagster is what clicks "run" for you &mdash; every night at midnight, in the right order, and it tells you the moment something breaks instead of you finding out days later.</p>
+                </div>
+                <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                    <thead>
+                        <tr style="background:var(--bg-off);">
+                            <th style="text-align:left; padding:10px; border:1px solid var(--border);">Tool</th>
+                            <th style="text-align:left; padding:10px; border:1px solid var(--border);">Model</th>
+                            <th style="text-align:left; padding:10px; border:1px solid var(--border);">Strengths</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding:10px; border:1px solid var(--border);"><strong>Dagster</strong></td>
+                            <td style="padding:10px; border:1px solid var(--border);">Asset-centric</td>
+                            <td style="padding:10px; border:1px solid var(--border);">Strong lineage, great UI, Python-native</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px; border:1px solid var(--border);">Airflow</td>
+                            <td style="padding:10px; border:1px solid var(--border);">Task-centric (DAG)</td>
+                            <td style="padding:10px; border:1px solid var(--border);">Very mature, large ecosystem</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px; border:1px solid var(--border);">Prefect</td>
+                            <td style="padding:10px; border:1px solid var(--border);">Flow-centric</td>
+                            <td style="padding:10px; border:1px solid var(--border);">Simple to start, cloud-managed option</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="card">
+                <h2>🚀 Create a Dagster Project</h2>
+                <pre><code class="language-bash">conda activate dagster
+dagster project scaffold --name dagster-orchestration
+cd dagster-orchestration</code></pre>
+                <p class="code-explanation">Generates <code>dagster_orchestration/assets.py</code> (your data assets) and <code>dagster_orchestration/definitions.py</code> (wires assets, jobs, and schedules together).</p>
+                <div class="info-box">
+                    <p>⚠️ <strong>Create this from the repo root</strong> &mdash; not inside <code>resale_flat</code>. Also add a <code>.env</code> file with <code>GITHUB_TOKEN='&lt;your-token&gt;'</code>.</p>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>🧩 Software-Defined Assets</h2>
+                <p>An asset is a logical unit of data &mdash; a table, a file, a DataFrame &mdash; produced by a function. This project defines two:</p>
+                <ul style="margin: 15px 0 15px 25px; color: var(--text-body);">
+                    <li><code>pandas_releases</code> &mdash; calls the GitHub API and returns a DataFrame of pandas releases</li>
+                    <li><code>summary_statistics</code> &mdash; depends on <code>pandas_releases</code>, and counts mentions of "feature", "bug", "performance" in each release's summary</li>
+                </ul>
+                <div class="hint-box">💡 Because <code>summary_statistics</code> declares <code>pandas_releases: pd.DataFrame</code> as a parameter, Dagster infers the dependency automatically and runs <code>pandas_releases</code> first.</div>
+                <div class="collapsible-section">
+                    <button class="collapsible-btn">
+                        <span>View assets.py</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="collapsible-content">
+                        <pre><code class="language-python">import base64
+import dotenv
+import os
+from io import BytesIO
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import requests
+from dagster import AssetExecutionContext, MetadataValue, asset
+
+dotenv.load_dotenv()
+
+@asset
+def pandas_releases(
+    context: AssetExecutionContext,
+) -> pd.DataFrame:
+    access_token = os.getenv("GITHUB_TOKEN")
+    response = requests.get(
+        "https://api.github.com/repos/pandas-dev/pandas/releases?per_page=100",
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {access_token}",
+        },
+        timeout=30,
+    )
+
+    releases_with_essential_fields = [
+        {
+            "version": release["tag_name"],
+            "published_at": release["published_at"],
+            "summary": release["body"],
+        }
+        for release in response.json()
+    ]
+    df = pd.DataFrame(releases_with_essential_fields)
+    df["published_at"] = pd.to_datetime(df["published_at"])
+
+    context.add_output_metadata(
+        metadata={
+            "num_records": len(df),
+            "preview": MetadataValue.md(
+                df.sort_values("published_at", ascending=False).head().to_markdown()
+            ),
+        }
+    )
+
+    return df
+
+
+@asset
+def summary_statistics(
+    context: AssetExecutionContext,
+    pandas_releases: pd.DataFrame,
+) -> pd.DataFrame:
+    counts = {
+        "new_features": pandas_releases.summary.str.contains("feature").sum(),
+        "bug_fixes": pandas_releases.summary.str.contains("bug").sum(),
+        "performance_improvements": pandas_releases.summary.str.contains(
+            "performance"
+        ).sum(),
+    }
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(list(counts.keys()), list(counts.values()))
+    plt.xticks(rotation=45, ha="right")
+    plt.title("Count of Releases by Type in Pandas")
+    plt.tight_layout()
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format="png")
+    image_data = base64.b64encode(buffer.getvalue())
+
+    md_content = f"![img](data:image/png;base64,{image_data.decode()})"
+    context.add_output_metadata(metadata={"plot": MetadataValue.md(md_content)})
+
+    return pd.DataFrame(
+        {"type": counts.keys(), "count": counts.values()}
+    )</code></pre>
+                        <p class="code-explanation">Both assets also attach metadata (a data preview, a bar chart) that shows up directly in the Dagster UI.</p>
                     </div>
                 </div>
             </section>
 
             <section class="card">
-                <h2>📊 Built-in DBT Tests</h2>
-                <div class="builtin-tests-grid">
-                    <div class="builtin-test">
-                        <h4>unique</h4>
-                        <p>Ensures column values are unique</p>
+                <h2>⏰ Jobs & Schedules</h2>
+                <p>A <em>job</em> targets a selection of assets to materialize together. A <em>schedule</em> starts a run of a job at a specified time.</p>
+                <pre><code class="language-python">from dagster import (
+    AssetSelection,
+    Definitions,
+    ScheduleDefinition,
+    define_asset_job,
+    load_assets_from_modules,
+)
+
+from . import assets
+
+all_assets = load_assets_from_modules([assets])
+
+pandas_job = define_asset_job(name="pandas_job", selection=AssetSelection.all())
+
+pandas_schedule = ScheduleDefinition(
+    name="pandas_schedule",
+    job=pandas_job,
+    cron_schedule="0 0 * * *"  # every day at midnight
+)
+
+defs = Definitions(
+    assets=all_assets,
+    jobs=[pandas_job],
+    schedules=[pandas_schedule],
+)</code></pre>
+                <div class="hint-box">💡 <code>cron_schedule="0 0 * * *"</code> means "at 00:00 every day." <a href="https://crontab.guru" target="_blank">crontab.guru</a> is handy for reading cron syntax.</div>
+            </section>
+
+            <section class="card">
+                <h2>🖥️ Run the Pipeline</h2>
+                <div class="workflow-steps">
+                    <div class="workflow-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Launch the Dagster UI</h4>
+                            <pre><code class="language-bash">dagster dev</code></pre>
+                            <p>Open <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></p>
+                        </div>
                     </div>
-                    <div class="builtin-test">
-                        <h4>not_null</h4>
-                        <p>Checks for null values</p>
+                    <div class="workflow-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Materialize the assets</h4>
+                            <p>Navigate to Jobs &rarr; <code>pandas_job</code>, then click "Materialize all" to trigger a run manually.</p>
+                        </div>
                     </div>
-                    <div class="builtin-test">
-                        <h4>accepted_values</h4>
-                        <p>Validates against a list of values</p>
-                    </div>
-                    <div class="builtin-test">
-                        <h4>relationships</h4>
-                        <p>Verifies foreign key constraints</p>
+                    <div class="workflow-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Check the run & schedule</h4>
+                            <p>The Runs tab shows live logs for each run. The Automation tab on <code>pandas_job</code> shows the daily midnight schedule.</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -476,206 +619,7 @@ validation_results = batch.validate(expectation)</code></pre>
             <section class="card resource-card">
                 <h2>📖 Additional Resources</h2>
                 <ul class="resource-list">
-                    <li><a href="https://hub.getdbt.com/dbt-labs/dbt_utils/latest/" target="_blank">dbt_utils Documentation</a></li>
-                    <li><a href="https://hub.getdbt.com/calogica/dbt_expectations/latest/" target="_blank">dbt-expectations Documentation</a></li>
-                    <li><a href="https://docs.getdbt.com/docs/build/tests" target="_blank">DBT Testing Documentation</a></li>
-                </ul>
-            </section>
-        </div>
-
-        <!-- Orchestration Tab -->
-        <div class="tab-content" id="orchestration">
-            <section class="card">
-                <h2>⚙️ Orchestration with Dagster</h2>
-                <p>Automate and schedule your data testing workflows with orchestration tools</p>
-            </section>
-
-            <section class="card">
-                <h2>🚀 Why Orchestration?</h2>
-                <div class="info-box">
-                    <p>Orchestration allows you to automate your data pipelines, schedule testing workflows, manage dependencies, and monitor data quality continuously in production environments.</p>
-                </div>
-                <div class="eli5-box">
-                    <span class="eli5-label">In plain English</span>
-                    <p>So far you've run commands by hand. Orchestration is what happens when a tool like Dagster clicks "run" for you — every night at 2am, in the right order (ingest, then validate, then transform, then test), and it tells you the moment something breaks instead of you finding out days later.</p>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>📦 Dagster for Data Testing</h2>
-                <div class="hint-box">💡 Dagster provides powerful capabilities for orchestrating both Meltano and DBT pipelines with built-in testing support</div>
-                
-                <div class="orchestration-example">
-                    <h3>Sample Dagster Configuration</h3>
-                    <pre><code class="language-python">from dagster import Definitions, ScheduleDefinition, job
-from dagster_meltano import meltano_resource, meltano_run_op
-
-@job(resource_defs={"meltano": meltano_resource})
-def run_elt_job():
-    tap_done = meltano_run_op("tap-github target-bigquery")()
-
-# Schedule to run daily at midnight
-elt_schedule = ScheduleDefinition(
-    job=run_elt_job,
-    cron_schedule="0 0 * * *",
-)
-
-defs = Definitions(
-    jobs=[run_elt_job],
-    schedules=[elt_schedule],
-)</code></pre>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>🔄 Orchestrated Testing Workflow</h2>
-                
-                <div class="workflow-steps">
-                    <div class="workflow-step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <h4>Schedule Data Ingestion</h4>
-                            <pre><code class="language-python">@job
-def ingest_data():
-    # Run Meltano tap to extract data
-    meltano_run_op("tap-source target-warehouse")()</code></pre>
-                            <p>Extract data from source systems on a schedule</p>
-                        </div>
-                    </div>
-
-                    <div class="workflow-step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <h4>Validate Raw Data with GX</h4>
-                            <pre><code class="language-python">@op
-def validate_raw_data():
-    # Run Great Expectations validation
-    context = gx.get_context()
-    results = validation_definition.run()
-    return results</code></pre>
-                            <p>Validate raw data quality before transformation</p>
-                        </div>
-                    </div>
-
-                    <div class="workflow-step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <h4>Run DBT Transformations</h4>
-                            <pre><code class="language-bash">dbt run</code></pre>
-                            <p>Transform data using DBT models</p>
-                        </div>
-                    </div>
-
-                    <div class="workflow-step">
-                        <div class="step-number">4</div>
-                        <div class="step-content">
-                            <h4>Execute DBT Tests</h4>
-                            <pre><code class="language-bash">dbt test</code></pre>
-                            <p>Run all DBT tests to validate transformations</p>
-                        </div>
-                    </div>
-
-                    <div class="workflow-step">
-                        <div class="step-number">5</div>
-                        <div class="step-content">
-                            <h4>Monitor & Alert</h4>
-                            <p>Track test results and send alerts on failures</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>📊 Dagster Configuration Example</h2>
-                
-                <div class="collapsible-section">
-                    <button class="collapsible-btn">
-                        <span>Complete Dagster Project Setup</span>
-                        <span class="arrow">▼</span>
-                    </button>
-                    <div class="collapsible-content">
-                        <pre><code class="language-python">from dagster import Definitions, ScheduleDefinition, job
-from dagster_dbt import dbt_cli_resource, dbt_run_op, dbt_test_op
-
-@job(resource_defs={"dbt": dbt_cli_resource})
-def dbt_pipeline():
-    dbt_run = dbt_run_op()
-    dbt_test_op(start_after=dbt_run)
-
-# Schedule to run daily
-dbt_schedule = ScheduleDefinition(
-    job=dbt_pipeline,
-    cron_schedule="0 2 * * *",  # 2 AM daily
-)
-
-defs = Definitions(
-    jobs=[dbt_pipeline],
-    schedules=[dbt_schedule],
-)</code></pre>
-                        <p class="code-explanation">This sets up a complete DBT pipeline with automated testing that runs daily at 2 AM</p>
-                    </div>
-                </div>
-
-                <div class="collapsible-section">
-                    <button class="collapsible-btn">
-                        <span>Running Dagster Development Server</span>
-                        <span class="arrow">▼</span>
-                    </button>
-                    <div class="collapsible-content">
-                        <pre><code class="language-bash">dagster dev</code></pre>
-                        <p class="code-explanation">Start the Dagster UI to monitor and trigger jobs manually</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>✨ Benefits of Orchestration</h2>
-                
-                <div class="best-practices-grid">
-                    <div class="practice-card">
-                        <div class="practice-icon">🔄</div>
-                        <h4>Automation</h4>
-                        <p>Schedule tests to run automatically without manual intervention</p>
-                    </div>
-
-                    <div class="practice-card">
-                        <div class="practice-icon">🔗</div>
-                        <h4>Dependency Management</h4>
-                        <p>Ensure tests run in the correct order with proper dependencies</p>
-                    </div>
-
-                    <div class="practice-card">
-                        <div class="practice-icon">📊</div>
-                        <h4>Visibility</h4>
-                        <p>Monitor all pipeline runs and test results in one place</p>
-                    </div>
-
-                    <div class="practice-card">
-                        <div class="practice-icon">🚨</div>
-                        <h4>Alerting</h4>
-                        <p>Get notified immediately when data quality issues arise</p>
-                    </div>
-
-                    <div class="practice-card">
-                        <div class="practice-icon">📈</div>
-                        <h4>Scalability</h4>
-                        <p>Handle complex pipelines with multiple data sources and tests</p>
-                    </div>
-
-                    <div class="practice-card">
-                        <div class="practice-icon">🔍</div>
-                        <h4>Debugging</h4>
-                        <p>Easily identify and troubleshoot pipeline failures</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card resource-card">
-                <h2>📖 Orchestration Resources</h2>
-                <ul class="resource-list">
-                    <li><a href="https://docs.dagster.io/" target="_blank">Dagster Documentation</a></li>
-                    <li><a href="https://docs.dagster.io/integrations/dbt" target="_blank">Dagster DBT Integration</a></li>
-                    <li><a href="https://docs.dagster.io/integrations/meltano" target="_blank">Dagster Meltano Integration</a></li>
+                    <li><a href="https://docs.dagster.io/getting-started" target="_blank">Dagster Documentation</a></li>
                 </ul>
             </section>
         </div>
@@ -683,85 +627,48 @@ defs = Definitions(
         <!-- Complete Workflow Tab -->
         <div class="tab-content" id="workflow">
             <section class="card">
-                <h2>🔄 Complete Data Testing Workflow</h2>
-                <p>Integrate both Great Expectations and DBT into your data pipeline</p>
-                <div class="eli5-box">
-                    <span class="eli5-label">In plain English</span>
-                    <p>Neither tool replaces the other — they guard different stages of the same journey. Great Expectations stands at the door checking data as it arrives; DBT testing stands at the exit checking data after it's been reshaped. Using both means bad data gets caught wherever it shows up.</p>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>📋 Recommended Testing Strategy</h2>
-                
-                <div class="strategy-grid">
-                    <div class="strategy-card">
-                        <h3>Use Great Expectations for:</h3>
-                        <ul>
-                            <li>✓ Raw data ingestion validation</li>
-                            <li>✓ File-based data sources</li>
-                            <li>✓ Complex statistical validations</li>
-                            <li>✓ Pre-transformation checks</li>
-                            <li>✓ Data quality monitoring</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="strategy-card">
-                        <h3>Use DBT Testing for:</h3>
-                        <ul>
-                            <li>✓ Transformed data validation</li>
-                            <li>✓ Database table testing</li>
-                            <li>✓ Schema validation</li>
-                            <li>✓ Business logic verification</li>
-                            <li>✓ Integration testing</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>🎯 Example Pipeline</h2>
-                
+                <h2>🔄 The Complete Picture</h2>
+                <p>Meltano, dbt, and Dagster each own one part of the same journey &mdash; from raw source to a scheduled, monitored pipeline.</p>
                 <div class="pipeline-flow">
                     <div class="pipeline-stage">
-                        <div class="stage-header">Stage 1: Ingestion</div>
+                        <div class="stage-header">Extract + Load</div>
                         <div class="stage-content">
-                            <p><strong>Tool:</strong> Great Expectations</p>
-                            <p>Validate raw data from source systems</p>
+                            <p><strong>Tool:</strong> Meltano</p>
                             <ul>
-                                <li>Check file formats</li>
-                                <li>Verify column existence</li>
-                                <li>Validate data types</li>
+                                <li>tap-github / tap-postgres</li>
+                                <li>target-bigquery</li>
                             </ul>
                         </div>
                     </div>
-
                     <div class="pipeline-arrow">→</div>
-
                     <div class="pipeline-stage">
-                        <div class="stage-header">Stage 2: Transformation</div>
+                        <div class="stage-header">Warehouse</div>
                         <div class="stage-content">
-                            <p><strong>Tool:</strong> DBT</p>
-                            <p>Transform and model data</p>
+                            <p><strong>Tool:</strong> BigQuery</p>
                             <ul>
-                                <li>Create dimensional models</li>
-                                <li>Apply business logic</li>
-                                <li>Generate aggregations</li>
+                                <li>Raw <code>ingestion</code> / <code>resale</code> datasets</li>
                             </ul>
                         </div>
                     </div>
-
                     <div class="pipeline-arrow">→</div>
-
                     <div class="pipeline-stage">
-                        <div class="stage-header">Stage 3: Validation</div>
+                        <div class="stage-header">Transform</div>
                         <div class="stage-content">
-                            <p><strong>Tool:</strong> DBT Testing</p>
-                            <p>Validate transformed data</p>
+                            <p><strong>Tool:</strong> dbt</p>
                             <ul>
-                                <li>Run schema tests</li>
-                                <li>Verify relationships</li>
-                                <li>Check business rules</li>
+                                <li><code>prices</code></li>
+                                <li><code>prices_by_town_type_model</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pipeline-arrow">→</div>
+                    <div class="pipeline-stage">
+                        <div class="stage-header">Orchestrate</div>
+                        <div class="stage-content">
+                            <p><strong>Tool:</strong> Dagster</p>
+                            <ul>
+                                <li>Daily schedule</li>
+                                <li>Monitoring & alerting</li>
                             </ul>
                         </div>
                     </div>
@@ -770,42 +677,36 @@ defs = Definitions(
 
             <section class="card">
                 <h2>✨ Best Practices</h2>
-                
                 <div class="best-practices-grid">
                     <div class="practice-card">
-                        <div class="practice-icon">📝</div>
-                        <h4>Document Your Tests</h4>
-                        <p>Clearly document what each test validates and why it's important</p>
+                        <div class="practice-icon">📁</div>
+                        <h4>One Project per Source</h4>
+                        <p>Give each data source its own Meltano project &mdash; don't mix GitHub and Postgres config in one folder</p>
                     </div>
-
                     <div class="practice-card">
-                        <div class="practice-icon">🔄</div>
-                        <h4>Automate Testing</h4>
-                        <p>Integrate tests into your CI/CD pipeline for continuous validation</p>
+                        <div class="practice-icon">🔐</div>
+                        <h4>Secrets Stay Out of Git</h4>
+                        <p>Non-sensitive config goes in <code>meltano.yml</code>; tokens and keys go in <code>.env</code>, never committed</p>
                     </div>
-
-                    <div class="practice-card">
-                        <div class="practice-icon">📊</div>
-                        <h4>Monitor Test Results</h4>
-                        <p>Track test failures over time to identify data quality trends</p>
-                    </div>
-
                     <div class="practice-card">
                         <div class="practice-icon">🎯</div>
-                        <h4>Test Early & Often</h4>
-                        <p>Validate data at each stage of your pipeline</p>
+                        <h4>Select Only What You Need</h4>
+                        <p>Extract specific entities and attributes instead of everything &mdash; less cost, less noise</p>
                     </div>
-
                     <div class="practice-card">
-                        <div class="practice-icon">🔍</div>
-                        <h4>Start Simple</h4>
-                        <p>Begin with basic tests and gradually add complexity</p>
+                        <div class="practice-icon">🧱</div>
+                        <h4>Let dbt Own Transformation</h4>
+                        <p>Keep Meltano's job to faithful loading; do type casting and business logic in dbt models</p>
                     </div>
-
                     <div class="practice-card">
-                        <div class="practice-icon">🤝</div>
-                        <h4>Collaborate</h4>
-                        <p>Work with data consumers to understand quality requirements</p>
+                        <div class="practice-icon">🔗</div>
+                        <h4>Model Dependencies Explicitly</h4>
+                        <p>Use <code>{{ ref(...) }}</code> in dbt and function parameters in Dagster assets so tools resolve run order for you</p>
+                    </div>
+                    <div class="practice-card">
+                        <div class="practice-icon">📊</div>
+                        <h4>Monitor in One Place</h4>
+                        <p>Use the Dagster UI to see run history, logs, and asset metadata instead of scattered terminal output</p>
                     </div>
                 </div>
             </section>
@@ -813,11 +714,11 @@ defs = Definitions(
             <section class="card highlight-card">
                 <h2>🎓 Key Takeaways</h2>
                 <ul class="takeaways-list">
-                    <li>Data testing is essential for maintaining data quality and reliability</li>
-                    <li>Great Expectations excels at validating raw data and complex statistical checks</li>
-                    <li>DBT testing integrates seamlessly with your transformation workflow</li>
-                    <li>Combining both tools provides comprehensive coverage across your pipeline</li>
-                    <li>Automation and monitoring are crucial for sustainable data quality</li>
+                    <li>ELT (not ETL) is the modern pattern because cloud warehouses can transform data efficiently after loading</li>
+                    <li>Meltano uses taps (extractors) and targets (loaders) to move data with configuration, not custom code</li>
+                    <li>dbt transforms raw warehouse tables into clean, analytics-ready models using plain SQL</li>
+                    <li>Dagster orchestrates pipelines around software-defined assets &mdash; what data exists, not just what tasks run</li>
+                    <li>Jobs and schedules turn a manual, one-off pipeline into an automated, monitored system</li>
                 </ul>
             </section>
         </div>
