@@ -18,4 +18,4 @@ A data pipeline that requires a human to run it is not a pipeline — it's a scr
 
 **Configuration-Driven Pipelines** — Meltano's config files define pipeline behaviour declaratively. You don't write extraction code — you configure a tap. This makes pipelines reproducible, auditable, and easier to hand off. FreshCart can add a new data source by adding a config block, not rewriting a pipeline.
 
-📄 [View lesson 2.2\6 interactive page](https://su-ntu-ctp.github.io/5m-data-2.6-data-pipelines-orchestration/)
+📄 [View lesson 2.6 interactive page](https://su-ntu-ctp.github.io/5m-data-2.6-data-pipelines-orchestration/)
