@@ -300,240 +300,169 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Modal Content Data
 const modalContent = {
-    'file-support': {
-        title: '📁 File Support',
+    'tap-extractors': {
+        title: '📥 Extractors (Taps)',
         content: `
-            <p>Great Expectations provides robust support for validating data in various file formats, making it ideal for testing data before it enters your data warehouse or lake. This file-first approach allows you to catch data quality issues at the source, preventing bad data from propagating through your pipeline. By validating files during ingestion, you can ensure data integrity from the very beginning of your data journey.</p>
-            
-            <h3>Supported File Formats</h3>
-            <ul>
-                <li><strong>CSV Files:</strong> Most common format for structured data transfer, with support for custom delimiters and encoding</li>
-                <li><strong>Excel Files:</strong> .xlsx and .xls formats with multi-sheet support</li>
-                <li><strong>JSON Files:</strong> Nested and flat JSON structures with schema validation</li>
-                <li><strong>Parquet Files:</strong> Columnar storage format for big data with efficient compression</li>
-                <li><strong>Avro Files:</strong> Row-based storage with schema evolution and strong typing</li>
-            </ul>
-            
+            <p>A <em>tap</em> is a Meltano plugin that reads data from a source — an API, a database, a file — and outputs it in the standardised Singer format. This lesson uses two: <code>tap-github</code> and <code>tap-postgres</code>.</p>
+
+            <h3>tap-github</h3>
+            <p>Pulls the <em>releases</em> entity from the GitHub API for the <code>pandas-dev/pandas</code> repository, selecting only <code>tag_name</code>, <code>body</code>, and <code>published_at</code>.</p>
+            <pre><code class="language-bash">meltano add tap-github
+meltano config set tap-github --interactive</code></pre>
+
+            <h3>tap-postgres</h3>
+            <p>Connects to the HDB resale flat prices table hosted on Supabase (Postgres), filtered to the <code>public</code> schema.</p>
+            <pre><code class="language-bash">meltano add tap-postgres
+meltano select tap-postgres "public-resale_flat_prices_from_jan_2017" "*"</code></pre>
+
             <div class="highlight-box">
-                <p>💡 File validation is typically performed during the data ingestion phase, before data is loaded into your warehouse.</p>
+                <p>💡 Always select specific entities/attributes rather than extracting everything — it's faster, cheaper, and cleaner.</p>
             </div>
-            
-            <h3>Common Use Cases</h3>
-            <div class="use-cases">
-                <h4>Validating CSV Uploads</h4>
-                <p>Check that uploaded CSV files have the expected columns, data types, and value ranges before processing.</p>
-                
-                <h4>Data Lake Validation</h4>
-                <p>Ensure files landing in S3, Azure Blob, or Google Cloud Storage meet quality standards.</p>
-                
-                <h4>ETL Pipeline Quality Gates</h4>
-                <p>Add validation checkpoints in your ETL workflows to catch data issues early.</p>
-            </div>
-            
+
             <h3>📖 Documentation</h3>
             <ul>
-                <li><a href="https://docs.greatexpectations.io/docs/core/connect_to_data/filesystem_data/" target="_blank">Connecting to Filesystem Data</a></li>
-                <li><a href="https://docs.greatexpectations.io/docs/core/connect_to_data/" target="_blank">Connect to Data Overview</a></li>
+                <li><a href="https://hub.meltano.com/extractors/tap-github/" target="_blank">tap-github on Meltano Hub</a></li>
+                <li><a href="https://hub.meltano.com/extractors/tap-postgres/" target="_blank">tap-postgres on Meltano Hub</a></li>
             </ul>
         `
     },
-    'database-support': {
-        title: '🗄️ Database Support',
+    'target-loaders': {
+        title: '📤 Loaders (Targets)',
         content: `
-            <p>Great Expectations can connect directly to databases to validate data quality, making it perfect for testing data already in your data warehouse or operational databases. Database-level validation allows you to run tests directly where your data lives, eliminating the need for data extraction and reducing processing overhead. This approach is particularly powerful for continuous monitoring of production databases and real-time data quality checks.</p>
-            
-            <h3>Supported Databases</h3>
-            <ul>
-                <li><strong>PostgreSQL:</strong> Popular open-source relational database with advanced features</li>
-                <li><strong>MySQL:</strong> Widely-used database for web applications with high performance</li>
-                <li><strong>BigQuery:</strong> Google's serverless data warehouse with petabyte-scale capabilities</li>
-                <li><strong>Snowflake:</strong> Cloud-based data warehouse platform with automatic scaling</li>
-                <li><strong>Redshift:</strong> Amazon's data warehouse solution optimized for analytics</li>
-                <li><strong>SQL Server:</strong> Microsoft's enterprise database with comprehensive tooling</li>
-                <li><strong>SQLite:</strong> Lightweight embedded database perfect for local development</li>
-            </ul>
-            
+            <p>A <em>target</em> is the counterpart to a tap — it receives the standardised data stream and writes it to a destination, handling table creation, schema inference, and batching.</p>
+
+            <h3>target-jsonl (local test)</h3>
+            <p>Dumps each record as a line of JSON to the local <code>output/</code> folder — the fastest way to sanity-check a tap before touching the cloud.</p>
+            <pre><code class="language-bash">meltano add target-jsonl
+meltano run tap-github target-jsonl</code></pre>
+
+            <h3>target-bigquery (production)</h3>
+            <p>Writes directly into a BigQuery dataset.</p>
+            <pre><code class="language-bash">meltano add target-bigquery
+meltano run tap-github target-bigquery</code></pre>
+
             <div class="highlight-box">
-                <p>💡 Database validation allows you to test data quality directly at the source without moving data.</p>
+                <p>💡 Known issue: setuptools &ge; 81.0.0 removed <code>pkg_resources</code>. Fix by adding <code>setuptools&lt;80</code> to the <code>target-bigquery</code> <code>pip_url</code> in <code>meltano.yml</code>.</p>
             </div>
-            
-            <h3>Key Benefits</h3>
-            <div class="use-cases">
-                <h4>In-Place Validation</h4>
-                <p>Test data quality without extracting it from your database, reducing data movement and processing time.</p>
-                
-                <h4>Real-Time Monitoring</h4>
-                <p>Set up scheduled validations to continuously monitor data quality in production databases.</p>
-                
-                <h4>SQL-Based Testing</h4>
-                <p>Leverage the power of SQL for complex validation rules while maintaining Python-based orchestration.</p>
-            </div>
-            
+
             <h3>📖 Documentation</h3>
             <ul>
-                <li><a href="https://docs.greatexpectations.io/docs/core/connect_to_data/sql_data/" target="_blank">Connecting to SQL Data</a></li>
-                <li><a href="https://docs.greatexpectations.io/docs/home/" target="_blank">Great Expectations Home</a></li>
+                <li><a href="https://hub.meltano.com/loaders/target-bigquery/" target="_blank">target-bigquery on Meltano Hub</a></li>
+                <li><a href="https://hub.meltano.com/loaders/target-jsonl/" target="_blank">target-jsonl on Meltano Hub</a></li>
             </ul>
         `
     },
-    'data-lakes': {
-        title: '🏞️ Data Lakes',
+    'dbt-sources-models': {
+        title: '📋 Sources & Models',
         content: `
-            <p>Great Expectations seamlessly integrates with major cloud data lake providers, enabling large-scale data validation across distributed storage systems. Data lake validation is essential for maintaining quality in environments where massive volumes of raw, semi-structured, and unstructured data are stored. By implementing validation at the data lake level, you can ensure consistent data quality across all downstream analytics and machine learning workflows.</p>
-            
-            <h3>Supported Platforms</h3>
-            <ul>
-                <li><strong>Amazon S3:</strong> Scalable object storage for data lakes with 99.999999999% durability</li>
-                <li><strong>Azure Blob Storage:</strong> Microsoft's cloud storage solution with tiered pricing</li>
-                <li><strong>Google Cloud Storage:</strong> Unified object storage for developers with global reach</li>
-                <li><strong>Azure Data Lake Storage:</strong> Enterprise-grade data lake for analytics with Hadoop compatibility</li>
-                <li><strong>Databricks File System (DBFS):</strong> Integrated with Spark workloads for distributed processing</li>
-            </ul>
-            
+            <p>A dbt <strong>source</strong> tells dbt where raw data lives so it can be referenced in SQL with <code>{{ source(...) }}</code>. A dbt <strong>model</strong> is a saved SQL <code>SELECT</code> statement that dbt compiles and runs as a table or view.</p>
+
+            <h3>source.yml</h3>
+            <pre><code class="language-yaml">sources:
+  - name: resale
+    schema: resale
+    tables:
+      - name: public_resale_flat_prices_from_jan_2017</code></pre>
+
+            <h3>prices.sql</h3>
+            <p>Casts string columns to numeric and adds a <code>price_per_sqm</code> calculated column.</p>
+
+            <h3>prices_by_town_type_model.sql</h3>
+            <p>Depends on <code>prices</code> via <code>{{ ref('prices') }}</code> and aggregates average prices by town, flat type, and flat model.</p>
+
             <div class="highlight-box">
-                <p>💡 Data lake validation is crucial for ensuring data quality in large-scale, distributed data environments.</p>
+                <p>💡 Models form a DAG — dbt reads the <code>ref()</code> calls to figure out the correct run order automatically.</p>
             </div>
-            
-            <h3>Why Validate Data Lakes?</h3>
-            <div class="use-cases">
-                <h4>Scale Validation</h4>
-                <p>Test petabytes of data stored across distributed systems with efficient sampling strategies.</p>
-                
-                <h4>Schema Evolution</h4>
-                <p>Track and validate schema changes as new data is continuously added to your data lake.</p>
-                
-                <h4>Multi-Format Support</h4>
-                <p>Validate data across different formats (Parquet, ORC, Avro) stored in the same data lake.</p>
-                
-                <h4>Partition Validation</h4>
-                <p>Test data quality at the partition level for efficient processing of time-series or categorical data.</p>
-            </div>
-            
+
             <h3>📖 Documentation</h3>
             <ul>
-                <li><a href="https://docs.greatexpectations.io/docs/cloud/overview/gx_cloud_overview" target="_blank">Connecting to Cloud Storage</a></li>
-                <li><a href="https://docs.greatexpectations.io/docs/core/introduction/gx_overview/" target="_blank">GX Overview</a></li>
+                <li><a href="https://docs.getdbt.com/docs/build/sources" target="_blank">dbt Sources</a></li>
+                <li><a href="https://docs.getdbt.com/docs/build/models" target="_blank">dbt Models</a></li>
             </ul>
         `
     },
-    'builtin-tests': {
-        title: '✅ Built-in Tests',
+    'dbt-materialization': {
+        title: '⚙️ Materialization',
         content: `
-            <p>DBT provides four fundamental built-in tests that cover the most common data quality checks. These tests are simple to implement and powerful for catching data issues. The beauty of DBT's built-in tests lies in their simplicity and SQL-native execution, making them incredibly fast and easy to understand. These tests run directly in your data warehouse, leveraging the power of modern SQL engines for optimal performance.</p>
-            
-            <h3>The Four Built-in Tests</h3>
-            <ul>
-                <li><strong>unique:</strong> Ensures all values in a column are unique (no duplicates), essential for primary keys</li>
-                <li><strong>not_null:</strong> Confirms there are no NULL values in critical columns, preventing data gaps</li>
-                <li><strong>accepted_values:</strong> Validates that column values match a predefined list, catching invalid categories</li>
-                <li><strong>relationships:</strong> Verifies referential integrity (foreign key constraints), ensuring data consistency across tables</li>
-            </ul>
-            
+            <p>Materialization controls how dbt turns a model's SQL into something physical in the warehouse.</p>
+
+            <h3>table</h3>
+            <p>dbt runs a <code>CREATE TABLE</code> statement — the result is fully rebuilt (and stored) on every <code>dbt run</code>. Used for both models in this lesson.</p>
+            <pre><code class="language-sql">{{ config(materialized='table') }}</code></pre>
+
+            <h3>view</h3>
+            <p>dbt creates a <code>CREATE VIEW</code> — the query re-runs every time the view is read. No storage cost, but no speed benefit either.</p>
+
+            <h3>Project default</h3>
+            <pre><code class="language-yaml">models:
+  resale_flat:
+    +materialized: table</code></pre>
+
             <div class="highlight-box">
-                <p>💡 These tests run as SQL queries against your data warehouse, making them very performant.</p>
+                <p>💡 Remove the generated <code>example</code> block from <code>dbt_project.yml</code> before running — it just points at a folder that no longer matters for this project.</p>
             </div>
-            
-            <h3>Example Usage</h3>
-            <div class="use-cases">
-                <h4>Unique Test</h4>
-                <p>Ensure customer IDs or order numbers are unique: <code>tests: [unique]</code></p>
-                
-                <h4>Not Null Test</h4>
-                <p>Verify critical fields like email or payment amount are always present: <code>tests: [not_null]</code></p>
-                
-                <h4>Accepted Values</h4>
-                <p>Check status fields contain only valid values: <code>accepted_values: {values: ['active', 'inactive', 'pending']}</code></p>
-                
-                <h4>Relationships</h4>
-                <p>Validate that order.customer_id exists in customers.id: <code>relationships: {to: ref('customers'), field: id}</code></p>
-            </div>
-            
+
             <h3>📖 Documentation</h3>
             <ul>
-                <li><a href="https://docs.getdbt.com/docs/build/data-tests" target="_blank">DBT Data Tests</a></li>
-                <li><a href="https://docs.getdbt.com/reference/resource-properties/data-tests" target="_blank">Test Properties Reference</a></li>
+                <li><a href="https://docs.getdbt.com/docs/build/materializations" target="_blank">dbt Materializations</a></li>
             </ul>
         `
     },
-    'dbt-utils': {
-        title: '🔧 dbt_utils',
+    'dagster-assets': {
+        title: '🧩 Software-Defined Assets',
         content: `
-            <p>dbt_utils is a popular package maintained by dbt Labs that extends DBT's testing capabilities with dozens of additional tests and helper functions. This community-driven package has become an essential tool for data teams, providing battle-tested utilities that handle common data quality scenarios. With over 50+ macros and tests, dbt_utils bridges the gap between basic built-in tests and custom test development.</p>
-            
-            <h3>Popular dbt_utils Tests</h3>
+            <p>An asset is a logical unit of data that can be produced or consumed by a pipeline — a table, a file, a DataFrame, a machine learning model.</p>
+
+            <h3>The two assets in this lesson</h3>
             <ul>
-                <li><strong>accepted_range:</strong> Verify numeric or date values fall within a range, with optional inclusive/exclusive boundaries</li>
-                <li><strong>expression_is_true:</strong> Test complex business logic across columns using SQL expressions</li>
-                <li><strong>recency:</strong> Ensure data is fresh and recently updated, critical for monitoring data pipelines</li>
-                <li><strong>at_least_one:</strong> Check that at least one value in a column is not null, useful for sparse data</li>
-                <li><strong>cardinality_equality:</strong> Compare distinct counts across tables to ensure consistency</li>
-                <li><strong>unique_combination_of_columns:</strong> Test uniqueness across multiple columns for composite keys</li>
+                <li><strong>pandas_releases</strong> — calls the GitHub API and returns a DataFrame of pandas releases</li>
+                <li><strong>summary_statistics</strong> — depends on <code>pandas_releases</code>, counts mentions of "feature", "bug", "performance"</li>
             </ul>
-            
+
             <div class="highlight-box">
-                <p>💡 Install with: <code>dbt deps</code> after adding to packages.yml</p>
+                <p>💡 Dagster infers the dependency because <code>summary_statistics</code> declares <code>pandas_releases: pd.DataFrame</code> as a function parameter — no manual wiring needed.</p>
             </div>
-            
-            <h3>When to Use dbt_utils</h3>
-            <div class="use-cases">
-                <h4>Range Validation</h4>
-                <p>Perfect for validating date ranges, age limits, or price boundaries that change over time.</p>
-                
-                <h4>Business Logic Testing</h4>
-                <p>Test complex calculations, such as ensuring discounted_price <= original_price.</p>
-                
-                <h4>Data Freshness</h4>
-                <p>Alert when your most recent data is older than expected, indicating potential pipeline issues.</p>
-                
-                <h4>Composite Keys</h4>
-                <p>Validate uniqueness across multiple columns when no single column is unique.</p>
-            </div>
-            
+
+            <h3>Defining an asset</h3>
+            <pre><code class="language-python">@asset
+def pandas_releases(context: AssetExecutionContext) -> pd.DataFrame:
+    ...
+    return df</code></pre>
+
             <h3>📖 Documentation</h3>
             <ul>
-                <li><a href="https://hub.getdbt.com/dbt-labs/dbt_utils/latest/" target="_blank">dbt_utils Package Hub</a></li>
-                <li><a href="https://docs.getdbt.com/docs/build/data-tests" target="_blank">DBT Data Tests</a></li>
+                <li><a href="https://docs.dagster.io/concepts/assets/software-defined-assets" target="_blank">Software-Defined Assets</a></li>
             </ul>
         `
     },
-    'dbt-expectations': {
-        title: '🎯 dbt-expectations',
+    'dagster-jobs-schedules': {
+        title: '⏰ Jobs & Schedules',
         content: `
-            <p>dbt-expectations is a powerful testing package inspired by Great Expectations, bringing statistical and advanced data quality tests to DBT. This package represents the most comprehensive testing library available for DBT, with over 50 different test types covering everything from basic schema validation to complex statistical analysis. It's particularly valuable for data science teams who need rigorous data quality checks before model training.</p>
-            
-            <h3>Key Features</h3>
-            <ul>
-                <li><strong>Type Validation:</strong> Verify column data types match expectations, catching schema drift before it causes issues</li>
-                <li><strong>String Pattern Matching:</strong> Use regex to validate formats (emails, phone numbers), ensuring data conforms to standards</li>
-                <li><strong>Statistical Tests:</strong> Mean, median, standard deviation validations to detect data anomalies</li>
-                <li><strong>Set Operations:</strong> Test if values are subsets or supersets of expected lists, useful for category validation</li>
-                <li><strong>JSON Validation:</strong> Validate JSON column schemas and structures for semi-structured data</li>
-                <li><strong>Time Series Tests:</strong> Detect anomalies and trends in time-based data using statistical methods</li>
-            </ul>
-            
+            <p>A <strong>job</strong> targets a selection of assets to materialize them together as one action. A <strong>schedule</strong> starts a run of a job at a specified time.</p>
+
+            <pre><code class="language-python">pandas_job = define_asset_job(name="pandas_job", selection=AssetSelection.all())
+
+pandas_schedule = ScheduleDefinition(
+    name="pandas_schedule",
+    job=pandas_job,
+    cron_schedule="0 0 * * *"  # every day at midnight
+)</code></pre>
+
             <div class="highlight-box">
-                <p>💡 dbt-expectations provides over 50 tests, making it one of the most comprehensive testing packages for DBT.</p>
+                <p>💡 <code>cron_schedule="0 0 * * *"</code> reads as "at 00:00 every day." Use <a href="https://crontab.guru" target="_blank">crontab.guru</a> to decode any cron expression.</p>
             </div>
-            
-            <h3>Advanced Use Cases</h3>
-            <div class="use-cases">
-                <h4>Schema Enforcement</h4>
-                <p>Catch schema drift by validating that columns maintain expected data types across pipeline runs.</p>
-                
-                <h4>Format Validation</h4>
-                <p>Use regex patterns to ensure emails, URLs, phone numbers follow the correct format.</p>
-                
-                <h4>Statistical Monitoring</h4>
-                <p>Detect anomalies by testing if metrics fall outside expected statistical ranges.</p>
-                
-                <h4>Data Distribution</h4>
-                <p>Validate that categorical variables maintain expected distributions (e.g., geographic regions).</p>
-            </div>
-            
+
+            <h3>The Definitions object</h3>
+            <p>Combines assets, jobs, and schedules into one entity Dagster loads on startup:</p>
+            <pre><code class="language-python">defs = Definitions(
+    assets=all_assets,
+    jobs=[pandas_job],
+    schedules=[pandas_schedule],
+)</code></pre>
+
             <h3>📖 Documentation</h3>
             <ul>
-                <li><a href="https://hub.getdbt.com/calogica/dbt_expectations/latest/" target="_blank">dbt-expectations Package Hub</a></li>
-                <li><a href="https://docs.getdbt.com/docs/build/data-tests" target="_blank">DBT Data Tests</a></li>
+                <li><a href="https://docs.dagster.io/concepts/partitions-schedules-sensors/schedules" target="_blank">Dagster Schedules</a></li>
             </ul>
         `
     }
@@ -590,7 +519,7 @@ function initializeModal() {
 document.addEventListener('DOMContentLoaded', initializeModal);
 
 // Console message for developers
-console.log('%c🔍 Data Testing Guide', 'font-size: 20px; font-weight: bold; color: #7b68ee;');
-console.log('%cExplore Great Expectations & DBT Testing!', 'font-size: 14px; color: #5a6c7d;');
-console.log('%cTip: Use arrow keys to navigate between tabs!', 'font-size: 12px; color: #5fcc8f;');
-console.log('%cClick on the buttons in the screenshots to learn more!', 'font-size: 12px; color: #2563eb;');
+console.log('%c🔄 Data Pipelines & Orchestration Guide', 'font-size: 20px; font-weight: bold; color: #1B2A4A;');
+console.log('%cExplore Meltano, dbt & Dagster!', 'font-size: 14px; color: #5F6B7A;');
+console.log('%cTip: Use arrow keys to navigate between tabs!', 'font-size: 12px; color: #2F7D5B;');
+console.log('%cClick on the feature buttons to learn more!', 'font-size: 12px; color: #2C5697;');
